@@ -37,7 +37,7 @@ class FinancialDisclosureScraper(scrapelib.Scraper):
                 )
 
                 if total is None:
-                    pbar.total = total = response.json()[0]["TotalRows"] * 10
+                    pbar.total = total = response.json()[0]["TotalRows"]
                     pbar.refresh()
 
                 for filer in response.json():
