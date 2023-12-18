@@ -1,14 +1,15 @@
 import io
-import itertools
-import re
+from typing import Generator
 
 import pdfplumber
 import scrapelib
 import tqdm
 
+from . import levenshtein_distance, parse_pdf
+
 
 class FinancialDisclosureScraper(scrapelib.Scraper):
-    def _filers(self):
+    def _filers(self) -> Generator[dict[str, dict], None, None]:
 
         years = self.get(
             "https://login.cfis.sos.state.nm.us/api///SfiExploreFiler/GetFilerDetailsYear"
@@ -67,9 +68,9 @@ class FinancialDisclosureScraper(scrapelib.Scraper):
                 if len(response.json()) < 10:
                     break
                 else:
-                    payload["pageNumber"] += 1
+                    payload["pageNumber"] += 1  # type: ignore[operator]
 
-    def scrape(self):
+    def scrape(self) -> Generator[dict[str, dict], None, None]:
 
         for filer_data in self._filers():
 
@@ -82,65 +83,13 @@ class FinancialDisclosureScraper(scrapelib.Scraper):
                 filing_pdf = pdfplumber.open(io.BytesIO(response.content))
 
                 try:
-                    pdf_info = parse_pdf(filing_pdf)
+                    pdf_info = parse_pdf.parse_pdf(filing_pdf)
                 except Exception as err:
                     raise ValueError(f"Error on {response.request.url}") from err
 
                 filing["extracted_info"] = pdf_info
 
             yield filer_data
-
-
-def is_section(row):
-    return re.match(r"^\d+\. [A-Z]", row[0])
-
-
-def group_rows(rows):
-    key = None
-
-    def key_function(row):
-        nonlocal key
-        if is_section(row):
-            key = row[0]
-        return key
-
-    grouped_rows = itertools.groupby(rows, key=key_function)
-
-    return {section: tuple(rows) for section, rows in grouped_rows}
-
-
-def parse_value(value):
-
-    results = value.split("\n", 1)
-    if len(results) == 2:
-        return results
-    else:
-        return results[0], None
-
-
-def parse_employer(rows):
-
-    header, *rows = rows
-
-    result = dict(parse_value(value) for row in rows for value in row if value)
-
-    return result
-
-
-def parse_pdf(pdf):
-
-    rows = (tuple(row) for page in pdf.pages for row in page.extract_table())
-
-    grouped_rows = group_rows(rows)
-
-    return {
-        "employer": parse_employer(
-            grouped_rows["3. REPORTING INDIVIDUAL - Employer Information"]
-        ),
-        "spouse's employer": parse_employer(
-            grouped_rows["4. SPOUSE OF REPORTING INDIVIDUAL – Employer Information"]
-        ),
-    }
 
 
 if __name__ == "__main__":
@@ -217,6 +166,11 @@ if __name__ == "__main__":
         employer_writer.writeheader()
         spouse_employer_writer.writeheader()
 
+        employer_field_corrector = levenshtein_distance.SpellingCorrector(employer_writer.fieldnames)
+        spouse_employer_field_corrector = levenshtein_distance.SpellingCorrector(
+            spouse_employer_writer.fieldnames
+        )
+
         scraper = FinancialDisclosureScraper()
         for filer in scraper.scrape():
 
@@ -232,9 +186,17 @@ if __name__ == "__main__":
 
                 # push foreign key down into extracted tables
                 report_id = filing["ReportID"]
-                employer_writer.writerow(
-                    extracted_info["employer"] | {"ReportID": report_id}
-                )
+
+                employer_data = {
+                    employer_field_corrector.correct(k): v
+                    for k, v in extracted_info["employer"].items()
+                }
+                employer_writer.writerow(employer_data | {"ReportID": report_id})
+
+                spouse_employer_data = {
+                    spouse_employer_field_corrector.correct(k): v
+                    for k, v in extracted_info["spouse's employer"].items()
+                }
                 spouse_employer_writer.writerow(
-                    extracted_info["spouse's employer"] | {"ReportID": report_id}
+                    spouse_employer_data | {"ReportID": report_id}
                 )
