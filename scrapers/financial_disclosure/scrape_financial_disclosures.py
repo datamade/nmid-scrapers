@@ -5,12 +5,11 @@ import pdfplumber
 import scrapelib
 import tqdm
 
-import levenshtein_distance, parse_pdf
+from scrapers.financial_disclosure import levenshtein_distance, parse_pdf
 
 
 class FinancialDisclosureScraper(scrapelib.Scraper):
     def _filers(self) -> Generator[dict[str, dict], None, None]:
-
         years = self.get(
             "https://login.cfis.sos.state.nm.us/api///SfiExploreFiler/GetFilerDetailsYear"
         ).json()
@@ -31,7 +30,6 @@ class FinancialDisclosureScraper(scrapelib.Scraper):
 
         with tqdm.tqdm() as pbar:
             while True:
-
                 response = self.post(
                     "https://login.cfis.sos.state.nm.us/api///SfiExploreFiler/SearchFilers",
                     json=payload,
@@ -71,11 +69,8 @@ class FinancialDisclosureScraper(scrapelib.Scraper):
                     payload["pageNumber"] += 1  # type: ignore[operator]
 
     def scrape(self) -> Generator[dict[str, dict], None, None]:
-
         for filer_data in self._filers():
-
             for filing in filer_data["FilterDetailList"]:
-
                 response = self.get(
                     f"https://login.cfis.sos.state.nm.us//ReportsOutput//SFI/{filing['ReportFileName']}"
                 )
@@ -96,10 +91,10 @@ if __name__ == "__main__":
     import csv
 
     with (
-        open("filer.csv", "w") as filer_file,
-        open("filing.csv", "w") as filing_file,
-        open("employer.csv", "w") as employer_file,
-        open("spouse_employer.csv", "w") as spouse_employer_file,
+        open("data/intermediate/filer.csv", "w") as filer_file,
+        open("data/intermediate/filing.csv", "w") as filing_file,
+        open("data/intermediate/employer.csv", "w") as employer_file,
+        open("data/intermediate/spouse_employer.csv", "w") as spouse_employer_file,
     ):
         filer_writer = csv.DictWriter(
             filer_file,
@@ -166,14 +161,15 @@ if __name__ == "__main__":
         employer_writer.writeheader()
         spouse_employer_writer.writeheader()
 
-        employer_field_corrector = levenshtein_distance.SpellingCorrector(employer_writer.fieldnames)
+        employer_field_corrector = levenshtein_distance.SpellingCorrector(
+            employer_writer.fieldnames
+        )
         spouse_employer_field_corrector = levenshtein_distance.SpellingCorrector(
             spouse_employer_writer.fieldnames
         )
 
         scraper = FinancialDisclosureScraper()
         for filer in scraper.scrape():
-
             filer_writer.writerow(filer["FilerInfo"])
             filer_id = filer["FilerInfo"]["FilerID"]
 
