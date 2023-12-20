@@ -1,0 +1,4 @@
+scrapelib
+pdfplumber
+tqdm
+pytest
