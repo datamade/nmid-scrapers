@@ -5,7 +5,7 @@ import pdfplumber
 import scrapelib
 import tqdm
 
-from . import levenshtein_distance, parse_pdf
+import levenshtein_distance, parse_pdf
 
 
 class FinancialDisclosureScraper(scrapelib.Scraper):
