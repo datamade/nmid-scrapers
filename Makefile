@@ -9,6 +9,3 @@ data/intermediate/%.csv :
 
 data/processed/offices.csv :
 	python -m scrapers.office.scrape_offices > $@
-
-data/processed/candidates.csv : data/processed/offices.csv
-	cat $< | python -m scrapers.office.scrape_candidates > $@
