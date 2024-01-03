@@ -22,8 +22,12 @@ data/intermediate/filings.csv : data/intermediate/lobbyists.csv
 	csvgrep -c TotalExpenditures -r "^0.0$$" -i $< | \
 	python -m scrapers.lobbyist.scrape_filings > $@
 
-data/intermediate/lobbyists.csv :
+data/intermediate/lobbyists.csv : data/intermediate/clients.csv
+	csvsql --query "SELECT ClientID, MAX(ClientVersionID) AS ClientVersionID FROM STDIN WHERE NumberOfLobbyists > 0 GROUP BY ClientID" < $< | \
 	python -m scrapers.lobbyist.scrape_lobbyists > $@
+
+data/intermediate/clients.csv :
+	python -m scrapers.lobbyist.scrape_clients > $@
 
 clean :
 	rm data/intermediate/*

@@ -59,9 +59,9 @@ for row in reader:
     _payload = payload.copy()
     _payload.update(
         {
-            "LobbyistID": row["ID"],
+            "LobbyistID": row["MemberID"],
             "LobbyistVersionID": row["MemberVersionID"],
-            "ElectionYear": row["FilingYear"],
+            "ElectionYear": row["Year"],
         }
     )
 
@@ -76,8 +76,8 @@ for row in reader:
             # Add the lobbyist ID and version to the filing record
             record.update(
                 {
-                    "PersonID": row["ID"],
-                    "PersonVersionID": row["MemberVersionID"],
+                    "MemberID": row["MemberID"],
+                    "MemberVersionID": row["MemberVersionID"],
                 }
             )
             writer.writerow(record)
