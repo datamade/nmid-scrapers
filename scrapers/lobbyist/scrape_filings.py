@@ -4,6 +4,9 @@ import logging
 import scrapelib
 import sys
 
+from tqdm import tqdm
+
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
@@ -41,12 +44,14 @@ writer = csv.DictWriter(
         "IsDirty",
         "PersonID",
         "PersonVersionID",
+        "MemberID",
+        "MemberVersionID",
     ],
 )
 
 writer.writeheader()
 
-s = scrapelib.Scraper(requests_per_minute=10, retry_attempts=3)
+s = scrapelib.Scraper(requests_per_minute=60, retry_attempts=3)
 
 payload = {
     "PageNo": 1,
@@ -55,7 +60,7 @@ payload = {
     "SortedBy": "",
 }
 
-for row in reader:
+for row in tqdm(reader):
     _payload = payload.copy()
     _payload.update(
         {

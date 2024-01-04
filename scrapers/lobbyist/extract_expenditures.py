@@ -1,47 +1,63 @@
 import csv
+import itertools
 import os
 import sys
 
 import pdfplumber
 
 writer = csv.writer(sys.stdout)
+writer.writerow(
+    [
+        "Date",
+        "Name of payee",
+        "Beneficiary",
+        "Type",
+        "Purpose for which made or incurred",
+        "Expenditure On Behalf Of",
+        "Amount",
+        "Source",
+        "File path",
+    ]
+)
 
-for file_index, file in enumerate(os.listdir("data/pdfs")):
-    pdf = pdfplumber.open(os.path.join("data/pdfs", file))
-
-    found_table = False
-    rows = []
-
-    for page in pdf.pages:
-        if page.search("FORM B\nEXPENDITURES"):
-            rows.extend(page.extract_table())
-            found_table = True
+for root, _, files in itertools.chain(
+    os.walk("data/pdfs/LAR"), os.walk("data/pdfs/LCD")
+):
+    for file_index, file in enumerate(files):
+        if not file.endswith(".pdf"):
             continue
 
-        # Once we've found the table, continue to add records from
-        # subsequent pages provided the table has the same number of
-        # columns and we have not hit Form C.
-        if found_table:
-            if page.search("FORM C\nSPECIAL EVENTS"):
-                break
+        pdf = pdfplumber.open(os.path.join(root, file))
 
-            table = page.extract_table()
+        found_table = False
+        rows = []
 
-            try:
-                assert table and (len(table[0]) == len(rows[0]))
-            except AssertionError:
-                break
+        for page in pdf.pages:
+            if page.search("FORM B\nEXPENDITURES"):
+                rows.extend(page.extract_table())
+                found_table = True
+                continue
 
-            rows.extend(table)
+            # Once we've found the table, continue to add records from
+            # subsequent pages provided the table has the same number of
+            # columns and we have not hit Form C.
+            if found_table:
+                if page.search("FORM C\nSPECIAL EVENTS"):
+                    break
 
-    for row_index, row in enumerate(rows):
-        # Don't endlessly add the header
-        if file_index > 0 and row_index == 0:
-            continue
+                table = page.extract_table()
 
-        if row_index == 0:
-            row.append("Source")
-        else:
-            row.append(file)
+                try:
+                    assert table and (len(table[0]) == len(rows[0]))
+                except AssertionError:
+                    break
 
-        writer.writerow(map(lambda x: x.replace("\n", " "), row))
+                rows.extend(table)
+
+        for row_index, row in enumerate(rows):
+            if row_index == 0:
+                continue
+
+            row.extend([file, os.path.join(root, file)])
+
+            writer.writerow(map(lambda x: x.replace("\n", " "), row))
