@@ -20,7 +20,8 @@ filings : data/intermediate/filings.csv
 	python -m scrapers.lobbyist.download_filings
 
 data/intermediate/filings.csv : data/intermediate/lobbyists.csv
-	python -m scrapers.lobbyist.scrape_filings < $< > $@
+	csvsql --query "SELECT DISTINCT MemberID FROM STDIN" < $< | \
+	python -m scrapers.lobbyist.scrape_filings > $@
 
 data/intermediate/lobbyists.csv : data/intermediate/clients.csv
 	csvsql --query "SELECT ClientID, MAX(ClientVersionID) AS ClientVersionID FROM STDIN WHERE NumberOfLobbyists > 0 GROUP BY ClientID" < $< | \

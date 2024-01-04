@@ -51,13 +51,15 @@ writer = csv.DictWriter(
 
 writer.writeheader()
 
-s = scrapelib.Scraper(requests_per_minute=60, retry_attempts=3)
+s = scrapelib.Scraper(requests_per_minute=0, retry_attempts=3)
 
 payload = {
     "PageNo": 1,
-    "PageSize": 10,
+    "PageSize": 100,
     "SortDir": "ASC",
     "SortedBy": "",
+    "ElectionYear": "",
+    "LobbyistVersionID": "",
 }
 
 for row in tqdm(reader):
@@ -65,8 +67,6 @@ for row in tqdm(reader):
     _payload.update(
         {
             "LobbyistID": row["MemberID"],
-            "LobbyistVersionID": row["MemberVersionID"],
-            "ElectionYear": row["Year"],
         }
     )
 
@@ -82,7 +82,7 @@ for row in tqdm(reader):
             record.update(
                 {
                     "MemberID": row["MemberID"],
-                    "MemberVersionID": row["MemberVersionID"],
+                    "MemberVersionID": None,
                 }
             )
             writer.writerow(record)
