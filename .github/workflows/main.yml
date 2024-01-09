@@ -26,11 +26,11 @@ jobs:
       - name: setup requirementss
         run: pip install -r requirements.txt
       # Runs a single command using the runners shell
-      - name: scrape data
-        run: make all
+      #- name: scrape data
+      #  run: make all
       - name: upload to s3
         env:
           S3BUCKET: ${{ secrets.S3BUCKET }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        run: make upload-to-s3
+        run: make fast-fail
