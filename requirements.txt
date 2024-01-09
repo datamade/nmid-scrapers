@@ -4,3 +4,4 @@ tqdm
 pytest
 awscli
 csvkit
+pyOpenSSL>=23.3.0 
