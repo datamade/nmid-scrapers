@@ -3,3 +3,4 @@ pdfplumber
 tqdm
 pytest
 awscli
+csvkit
