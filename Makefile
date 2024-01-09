@@ -4,7 +4,7 @@ upload-to-s3: data/processed/employer.csv data/processed/spouse_employer.csv
 	for file in $^; do aws s3 cp $$file $(S3BUCKET) --acl public-read; done
 
 .PHONY: all
-all: 
+all: data/processed/employer.csv data/processed/spouse_employer.csv
 
 data/processed/employer.csv : data/intermediate/filer.csv
 	csvjoin -c FilerID data/intermediate/filer.csv data/intermediate/filing.csv | csvjoin -c ReportID data/intermediate/employer.csv > $@
