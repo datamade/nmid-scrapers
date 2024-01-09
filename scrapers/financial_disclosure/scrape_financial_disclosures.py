@@ -163,6 +163,7 @@ if __name__ == "__main__":
                 "Reporting individual",
                 "Office / Board or Commission / Agency Name",
                 "Date Assumed Office, Employed, or Appointed",
+                "ReportID"
             ],
         )
         filer_writer.writeheader()
@@ -210,12 +211,9 @@ if __name__ == "__main__":
                     spouse_employer_data | {"ReportID": report_id}
                 )
 
-                if not extracted_info["current filing status"]:
-                    filing_status_writer.writerow({"ReportID": report_id})
-                else:
-                    for entry in extracted_info["current filing status"]:
-                        filing_status_data = {
-                            filing_status_field_corrector.correct(k): v
-                            for k, v in entry.items()
-                        }
-                        filing_status_writer.writerow(filing_status_data)
+                for entry in extracted_info["current filing status"]:
+                    filing_status_data = {
+                        filing_status_field_corrector.correct(k): v
+                        for k, v in entry.items()
+                    }
+                    filing_status_writer.writerow(filing_status_data | {"ReportID": report_id})
