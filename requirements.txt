@@ -2,3 +2,4 @@ scrapelib
 pdfplumber
 tqdm
 pytest
+awscli
