@@ -53,6 +53,22 @@ def _parse_employer(rows: Rows) -> dict[str, str | None]:
     return result
 
 
+def _parse_filing_status(rows: Rows) -> dict[str, str | None]:
+
+    header, title_row, *body = rows
+
+    fields = [
+        " ".join(value.split()) for value in title_row if value
+    ]  # Remove extra whitespace from field names
+    table_rows = [[value for value in row if value] for row in body]
+    result = [
+        {field: val for field, val in zip(fields, table_row)}
+        for table_row in table_rows
+    ]
+
+    return result
+
+
 def parse_pdf(pdf: pdfplumber.PDF) -> dict[str, dict[str, str | None]]:
 
     rows = [tuple(row) for page in pdf.pages for row in page.extract_table()]  # type: ignore[union-attr]
@@ -66,8 +82,7 @@ def parse_pdf(pdf: pdfplumber.PDF) -> dict[str, dict[str, str | None]]:
         "spouse's employer": _parse_employer(
             grouped_rows["SPOUSE OF REPORTING INDIVIDUAL – Employer Information"]
         ),
+        "current filing status": _parse_filing_status(
+            grouped_rows["REPORTING INDIVIDUAL – Current Filing Status"]
+        ),
     }
-
-
-if __name__ == "__main__":
-    breakpoint()

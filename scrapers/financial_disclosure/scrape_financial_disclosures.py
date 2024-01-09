@@ -95,6 +95,7 @@ if __name__ == "__main__":
         open("data/intermediate/filing.csv", "w") as filing_file,
         open("data/intermediate/employer.csv", "w") as employer_file,
         open("data/intermediate/spouse_employer.csv", "w") as spouse_employer_file,
+        open("data/intermediate/filing_status.csv", "w") as filing_status_file,
     ):
         filer_writer = csv.DictWriter(
             filer_file,
@@ -156,16 +157,29 @@ if __name__ == "__main__":
                 "ReportID",
             ],
         )
+        filing_status_writer = csv.DictWriter(
+            filing_status_file,
+            [
+                "Reporting individual",
+                "Office / Board or Commission / Agency Name",
+                "Date Assumed Office, Employed, or Appointed",
+                "ReportID"
+            ],
+        )
         filer_writer.writeheader()
         filing_writer.writeheader()
         employer_writer.writeheader()
         spouse_employer_writer.writeheader()
+        filing_status_writer.writeheader()
 
         employer_field_corrector = levenshtein_distance.SpellingCorrector(
             employer_writer.fieldnames
         )
         spouse_employer_field_corrector = levenshtein_distance.SpellingCorrector(
             spouse_employer_writer.fieldnames
+        )
+        filing_status_field_corrector = levenshtein_distance.SpellingCorrector(
+            filing_status_writer.fieldnames
         )
 
         scraper = FinancialDisclosureScraper()
@@ -196,3 +210,10 @@ if __name__ == "__main__":
                 spouse_employer_writer.writerow(
                     spouse_employer_data | {"ReportID": report_id}
                 )
+
+                for entry in extracted_info["current filing status"]:
+                    filing_status_data = {
+                        filing_status_field_corrector.correct(k): v
+                        for k, v in entry.items()
+                    }
+                    filing_status_writer.writerow(filing_status_data | {"ReportID": report_id})

@@ -1,3 +1,9 @@
+data/processed/disclosures.zip : data/intermediate/employer.csv \
+	data/intermediate/filer.csv \
+	data/intermediate/filing.csv \
+	data/intermediate/spouse_employer.csv \
+	data/intermediate/filing_status.csv \
+	zip $@ $^
 
 .PHONY: upload-to-s3
 upload-to-s3: data/processed/employer.csv data/processed/spouse_employer.csv
