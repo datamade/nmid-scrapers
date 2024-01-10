@@ -48,7 +48,16 @@ def _parse_employer(rows: Rows) -> dict[str, str | None]:
 
     header, *body = rows
 
-    result = dict(_parse_value(value) for row in body for value in row if value)
+    result = {}
+    for row in body:
+        for value in row:
+            if not value:
+                continue
+
+            if value in result:
+                raise IndexError("Multiple employers found!")
+
+            result.update([_parse_value(value)])
 
     return result
 
