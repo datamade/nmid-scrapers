@@ -1,16 +1,17 @@
 .PHONY : all filings clean upload-to-s3
 
-all: data/processed/disclosures.zip data/processed/offices.csv filings
+all : data/processed/employer.csv data/processed/spouse_employer.csv \
+	data/processed/filing_status.csv data/processed/lobbyist_expenditures.csv
+
+# Financial disclosures
+upload-to-s3 : data/processed/employer.csv data/processed/spouse_employer.csv data/processed/filing_status.csv
+	@for file in $^; do aws s3 cp $$file $(S3BUCKET) --acl public-read; done
 
 data/processed/disclosures.zip : data/intermediate/employer.csv \
 	data/intermediate/filer.csv \
 	data/intermediate/filing.csv \
 	data/intermediate/spouse_employer.csv
 	zip $@ $^
-
-upload-to-s3: data/processed/employer.csv data/processed/spouse_employer.csv data/processed/filing_status.csv
-	@for file in $^; do aws s3 cp $$file $(S3BUCKET) --acl public-read; done
-
 
 data/processed/employer.csv : data/intermediate/filer.csv
 	csvjoin -c FilerID data/intermediate/filer.csv data/intermediate/filing.csv | csvjoin -c ReportID data/intermediate/employer.csv > $@
@@ -24,10 +25,12 @@ data/processed/filing_status.csv : data/intermediate/filer.csv
 data/intermediate/filer.csv :
 	python -m scrapers.financial_disclosure.scrape_financial_disclosures
 
+# Offices
 data/processed/offices.csv :
 	python -m scrapers.office.scrape_offices > $@
 
-data/intermediate/expenditures.csv :
+# Lobbyist expenditures and contributions
+data/processed/lobbyist_expenditures.csv :
 	python -m scrapers.lobbyist.extract_expenditures > $@
 
 filings : data/intermediate/filings.csv
