@@ -3,3 +3,6 @@ pdfplumber
 tqdm
 csvkit
 pytest
+awscli
+csvkit
+pyOpenSSL>=23.3.0 
