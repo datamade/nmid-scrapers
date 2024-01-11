@@ -1,6 +1,7 @@
 scrapelib
 pdfplumber
 tqdm
+csvkit
 pytest
 awscli
 csvkit
