@@ -86,7 +86,7 @@ if __name__ == "__main__":
                     pdf, table_start_signature, table_end_signature
                 )
 
-                if not transactions:
+                if not transactions or len(transactions) == 1:
                     null_writer.writerow([file, os.path.join(root, file)])
                     continue
 

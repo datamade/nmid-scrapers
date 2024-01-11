@@ -36,7 +36,7 @@ data/processed/offices.csv :
 	python -m scrapers.office.scrape_offices > $@
 
 # Lobbyist expenditures and contributions
-data/processed/lobbyist_%.csv :
+data/processed/lobbyist_%.csv : filings
 	python -m scrapers.lobbyist.extract_transactions $* > $@
 
 filings : data/intermediate/filings.csv
@@ -48,7 +48,7 @@ data/intermediate/filings.csv : data/intermediate/lobbyists.csv
 	python -m scrapers.lobbyist.scrape_filings > $@
 
 data/intermediate/lobbyists.csv : data/intermediate/clients.csv
-	csvsql --query "SELECT ClientID, MAX(ClientVersionID) AS ClientVersionID FROM STDIN WHERE NumberOfLobbyists > 0 GROUP BY ClientID" < $< | \
+	csvsql --query "SELECT DISTINCT ClientID FROM STDIN" < $< | \
 	python -m scrapers.lobbyist.scrape_lobbyists > $@
 
 data/intermediate/clients.csv :
