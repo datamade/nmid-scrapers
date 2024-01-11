@@ -4,7 +4,8 @@ all : data/processed/employer.csv data/processed/spouse_employer.csv \
 	data/processed/filing_status.csv data/processed/lobbyist_expenditures.csv
 
 # Financial disclosures
-upload-to-s3 : data/processed/employer.csv data/processed/spouse_employer.csv data/processed/filing_status.csv
+upload-to-s3 : data/processed/employer.csv data/processed/spouse_employer.csv \
+	data/processed/filing_status.csv data/processed/lobbyist_expenditures.csv
 	@for file in $^; do aws s3 cp $$file $(S3BUCKET) --acl public-read; done
 
 data/processed/disclosures.zip : data/intermediate/employer.csv \
