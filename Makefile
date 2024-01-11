@@ -1,11 +1,16 @@
 .PHONY : all filings upload-to-s3 clean
 
 all : data/processed/employer.csv data/processed/spouse_employer.csv \
-	data/processed/filing_status.csv data/processed/lobbyist_expenditures.csv
+	data/processed/filing_status.csv data/processed/lobbyist_expenditures.csv \
+	data/processed/lobbyist_contributions.csv
 
 upload-to-s3 : data/processed/employer.csv data/processed/spouse_employer.csv \
-	data/processed/filing_status.csv data/processed/lobbyist_expenditures.csv
+	data/processed/filing_status.csv data/processed/lobbyist_expenditures.csv \
+	data/processed/lobbyist_contributions.csv
 	@for file in $^; do aws s3 cp $$file $(S3BUCKET) --acl public-read; done
+
+clean :
+	rm data/intermediate/*
 
 # Financial disclosures
 data/processed/disclosures.zip : data/intermediate/employer.csv \
@@ -31,8 +36,8 @@ data/processed/offices.csv :
 	python -m scrapers.office.scrape_offices > $@
 
 # Lobbyist expenditures and contributions
-data/processed/lobbyist_expenditures.csv :
-	python -m scrapers.lobbyist.extract_expenditures > $@
+data/processed/lobbyist_%.csv :
+	python -m scrapers.lobbyist.extract_transactions $* > $@
 
 filings : data/intermediate/filings.csv
 	csvgrep -c ReportTypeCode -m "LNA" -i < $< | \
@@ -48,6 +53,3 @@ data/intermediate/lobbyists.csv : data/intermediate/clients.csv
 
 data/intermediate/clients.csv :
 	python -m scrapers.lobbyist.scrape_clients > $@
-
-clean :
-	rm data/intermediate/*
