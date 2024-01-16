@@ -2,7 +2,7 @@
 
 all : data/processed/employer.csv data/processed/spouse_employer.csv \
 	data/processed/filing_status.csv data/processed/lobbyist_expenditures.csv \
-	data/processed/lobbyist_contributions.csv
+	data/processed/lobbyist_contributions.csv data/processed/lobbyist_employer.csv
 
 upload-to-s3 : data/processed/employer.csv data/processed/spouse_employer.csv \
 	data/processed/filing_status.csv data/processed/lobbyist_expenditures.csv \
@@ -38,11 +38,35 @@ data/processed/offices.csv :
 # Lobbyist expenditures and contributions
 .PRECIOUS : data/intermediate/lobbyist_contributions.csv data/intermediate/lobbyist_expenditures.csv
 
+data/processed/lobbyist_employer.csv : data/raw/lobbyists.csv data/intermediate/clients.csv
+	csvsql --query "SELECT \
+		ClientID, \
+		MemberID,  \
+		Phone,  \
+		LobbyistName,  \
+		LobbyistAddress, \
+		Email, \
+		StartYear, \
+		EndYear \
+	FROM ( \
+		SELECT \
+			ClientID, \
+			MemberID, \
+			MAX(MemberVersionID) AS MemberVersionID, \
+			MAX(Year) AS Year, \
+			MIN(Year) AS StartYear, \
+			MAX(Year) AS EndYear \
+		FROM STDIN \
+		GROUP BY ClientID, MemberID \
+	) AS lobbyists \
+	JOIN STDIN \
+	USING (ClientID, MemberID, MemberVersionID, Year)" < $< | \
+	csvjoin -c ClientID - $(word 2, $^) > $@
+
 data/processed/lobbyist_%.csv : data/intermediate/lobbyist_%.csv data/intermediate/filings.csv \
-	data/intermediate/lobbyists.csv data/intermediate/clients.csv
-	csvjoin -c Source,ReportFileName $< $(word 2, $^) | \
-	csvjoin -c MemberID - $(word 3, $^) | \
-	csvjoin -c ClientID - $(word 4, $^) > $@
+	data/intermediate/lobbyists.csv
+	csvjoin --left -c Source,ReportFileName $< $(word 2, $^) | \
+	csvjoin --left -c MemberID - $(word 3, $^) > $@
 
 data/intermediate/lobbyist_%.csv : filings
 	python -m scrapers.lobbyist.extract_transactions $* > $@
@@ -53,7 +77,6 @@ filings : data/intermediate/filings.csv
 
 data/intermediate/lobbyists.csv : data/raw/lobbyists.csv
 	csvsql --query "SELECT \
-		ClientID, \
 		MemberID,  \
 		Phone,  \
 		LobbyistName,  \
@@ -61,15 +84,15 @@ data/intermediate/lobbyists.csv : data/raw/lobbyists.csv
 		Email \
 	FROM ( \
 		SELECT \
-			ClientID, \
 			MemberID, \
 			MAX(MemberVersionID) AS MemberVersionID, \
-			MAX(Year) AS Year \
+			MAX(Year) AS Year, \
+			MAX(ClientID) AS ClientID \
 		FROM STDIN \
-		GROUP BY ClientID, MemberID \
+		GROUP BY MemberID \
 	) AS lobbyists \
 	JOIN STDIN \
-	USING (ClientID, MemberID, MemberVersionID, Year)" < $< > $@
+	USING (MemberID, MemberVersionID, Year, ClientID)" < $< > $@
 
 data/intermediate/clients.csv : data/raw/clients.csv
 	csvsql --query "SELECT ClientID, MAX(ClientName) AS ClientName FROM STDIN GROUP BY ClientID" < $< > $@
