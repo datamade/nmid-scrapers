@@ -1,29 +1,26 @@
 .PHONY : all upload-to-s3 clean
 
-all : data/processed/employer.csv data/processed/spouse_employer.csv \
-	data/processed/filing_status.csv data/processed/lobbyist_expenditures.csv \
-	data/processed/lobbyist_contributions.csv data/processed/lobbyist_employer.csv
+all : data/processed/employer.csv data/processed/filing_status.csv \
+  data/processed/lobbyist_expenditures.csv data/processed/lobbyist_contributions.csv \
+  data/processed/lobbyist_employer.csv
 
-upload-to-s3 : data/processed/employer.csv data/processed/spouse_employer.csv \
-	data/processed/filing_status.csv data/processed/lobbyist_expenditures.csv \
-	data/processed/lobbyist_contributions.csv
+upload-to-s3 : data/processed/employer.csv data/processed/filing_status.csv \
+  data/processed/lobbyist_expenditures.csv data/processed/lobbyist_contributions.csv \
+  data/processed/lobbyist_employer.csv
+
 	@for file in $^; do aws s3 cp $$file $(S3BUCKET) --acl public-read; done
 
 clean :
 	rm data/intermediate/*
 
 # Financial disclosures
-data/processed/disclosures.zip : data/intermediate/employer.csv \
-	data/intermediate/filer.csv \
-	data/intermediate/filing.csv \
-	data/intermediate/spouse_employer.csv
+data/processed/disclosures.zip : data/intermediate/employer.csv		\
+	                         data/intermediate/filer.csv		\
+	                         data/intermediate/filing.csv
 	zip $@ $^
 
 data/processed/employer.csv : data/intermediate/filer.csv
-	csvjoin -c FilerID data/intermediate/filer.csv data/intermediate/filing.csv | csvjoin -c ReportID data/intermediate/employer.csv > $@
-
-data/processed/spouse_employer.csv : data/intermediate/filer.csv
-	csvjoin -c FilerID data/intermediate/filer.csv data/intermediate/filing.csv | csvjoin -c ReportID data/intermediate/spouse_employer.csv > $@
+	csvjoin -c FilerID data/intermediate/filer.csv data/intermediate/filing.csv | csvjoin -c ReportID - data/intermediate/employer.csv | csvjoin -c ReportID - data/intermediate/spouse_employer.csv > $@
 
 data/processed/filing_status.csv : data/intermediate/filer.csv
 	csvjoin -c FilerID data/intermediate/filer.csv data/intermediate/filing.csv | csvjoin -c ReportID data/intermediate/filing_status.csv > $@
@@ -106,3 +103,6 @@ data/raw/lobbyists.csv : data/intermediate/clients.csv
 
 data/raw/clients.csv :
 	python -m scrapers.lobbyist.scrape_clients > $@
+
+clean :
+	rm data/intermediate/*
