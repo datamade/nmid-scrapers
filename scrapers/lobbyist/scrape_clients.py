@@ -20,7 +20,7 @@ writer = csv.DictWriter(
 
 writer.writeheader()
 
-s = scrapelib.Scraper(requests_per_minute=10)
+s = scrapelib.Scraper(requests_per_minute=60, retry_attempts=3)
 
 payload = {
     "ElectionYear": "",

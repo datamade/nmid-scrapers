@@ -57,30 +57,25 @@ writer = csv.DictWriter(
         "PersonID",
         "PersonVersionID",
         "ClientID",
-        "ClientVersionID",
     ],
 )
 
 writer.writeheader()
 
-s = scrapelib.Scraper(requests_per_minute=60, retry_attempts=3)
+s = scrapelib.Scraper(requests_per_minute=0, retry_attempts=3)
 
 payload = {
     "PageNo": 1,
-    "PageSize": 10,
+    "PageSize": 1000,
     "ElectionYear": "",
     "SortDir": "ASC",
     "SortedBy": "",
+    "ClientVersionID": "",
 }
 
 for row in tqdm(reader):
     _payload = payload.copy()
-    _payload.update(
-        {
-            "ClientID": row["ClientID"],
-            "ClientVersionID": row["ClientVersionID"],
-        }
-    )
+    _payload["ClientID"] = row["ClientID"]
 
     response = s.post(
         "https://login.cfis.sos.state.nm.us/api//ClientDetails/LobbyistsByClientList",
@@ -90,11 +85,5 @@ for row in tqdm(reader):
 
     if response.ok:
         for record in response.json():
-            # Add the client ID and version to the lobbyist record
-            record.update(
-                {
-                    "ClientID": row["ClientID"],
-                    "ClientVersionID": row["ClientVersionID"],
-                }
-            )
+            record["ClientID"] = row["ClientID"]
             writer.writerow(record)
