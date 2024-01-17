@@ -103,6 +103,3 @@ data/raw/lobbyists.csv : data/intermediate/clients.csv
 
 data/raw/clients.csv :
 	python -m scrapers.lobbyist.scrape_clients > $@
-
-clean :
-	rm data/intermediate/*
