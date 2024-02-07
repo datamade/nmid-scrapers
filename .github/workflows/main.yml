@@ -33,3 +33,15 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: make upload-to-s3
+
+  etl:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: clear cache
+        uses: michcio1234/heroku-run@0.1.1
+        with:
+          heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
+          heroku_email: ${{ secrets.HEROKU_ACCOUNT }}
+          heroku_app_name: ${{ secrets.HEROKU_APP }}
+        command: make nightly
