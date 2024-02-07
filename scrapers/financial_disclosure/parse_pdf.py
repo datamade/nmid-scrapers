@@ -71,7 +71,7 @@ def _parse_filing_status(rows: Rows) -> dict[str, str | None]:
 
 def parse_pdf(pdf: pdfplumber.PDF) -> dict[str, dict[str, str | None]]:
 
-    rows = [tuple(row) for page in pdf.pages for row in page.extract_table()]  # type: ignore[union-attr]
+    rows = [tuple(row) for page in pdf.pages if (table := page.extract_table()) for row in table]  # type: ignore[union-attr]
 
     grouped_rows = SubstringDict(_group_rows(rows))
 
