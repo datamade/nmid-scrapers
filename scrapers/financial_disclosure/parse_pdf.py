@@ -76,14 +76,16 @@ def _parse_general_info(rows: Rows) -> dict[str, str | None]:
 
     header, *body = rows
 
-    result = [{"Input": val[0]} for val in body]
+    result = [{"Input": val[0]} for val in body if val[0] != '']
     
     return result
 
 
 def parse_pdf(pdf: pdfplumber.PDF) -> dict[str, dict[str, str | None]]:
-
-    rows = [tuple(row) for page in pdf.pages for row in page.extract_table()]  # type: ignore[union-attr]
+    table_settings = {
+        "intersection_tolerance": 6, # minimum allowable tolerance to grab all tables
+    }
+    rows = [tuple(row) for page in pdf.pages for row in page.extract_table(table_settings=table_settings)]  # type: ignore[union-attr]
 
     grouped_rows = SubstringDict(_group_rows(rows))
 
@@ -124,15 +126,9 @@ def parse_pdf(pdf: pdfplumber.PDF) -> dict[str, dict[str, str | None]]:
         "state agency representation": _parse_filing_status(
             grouped_rows["REPORTING INDIVIDUAL & REPORTING INDIVIDUAL’S SPOUSE\nState Agency Representation"]
         ),
-    }
-
-    try:
-        result["general info"] = _parse_general_info(
+        "general info": _parse_general_info(
             grouped_rows["REPORTING INDIVIDUAL & REPORTING INDIVIDUAL’S SPOUSE – General Information"]
-        )
-    except ValueError:
-        # this table may appear by itself on a page as a single cell if empty.
-        # pdfplumber will ignore it in this case, so this adds an empty input
-        result["general info"] = []
+        ),
+    }
 
     return result
