@@ -260,30 +260,7 @@ if __name__ == "__main__":
             ],
         )
 
-        filer_writer.writeheader()
-        filing_writer.writeheader()
-        employer_writer.writeheader()
-        spouse_employer_writer.writeheader()
-        filing_status_writer.writeheader()
-        income_writer.writeheader()
-        specializations_writer.writeheader()
-        consulting_writer.writeheader()
-        real_estate_writer.writeheader()
-        business_writer.writeheader()
-        membership_writer.writeheader()
-        licenses_writer.writeheader()
-        provisions_writer.writeheader()
-        representation_writer.writeheader()
-        general_writer.writeheader()
-
-        employer_field_corrector = levenshtein_distance.SpellingCorrector(
-            employer_writer.fieldnames
-        )
-        spouse_employer_field_corrector = levenshtein_distance.SpellingCorrector(
-            spouse_employer_writer.fieldnames
-        )
-
-        # pdf fields that return lists of dicts w/ identical keys
+        # pdf fields that return lists of similarly structured dicts
         mapping_dict = {
             "filing_status": {
                 "file": filing_status_file,
@@ -374,6 +351,21 @@ if __name__ == "__main__":
                 "accessor": "general info"
             }
         }
+
+        for pdf_field in mapping_dict.values():
+            pdf_field["writer"].writeheader()
+
+        filer_writer.writeheader()
+        filing_writer.writeheader()
+        employer_writer.writeheader()
+        spouse_employer_writer.writeheader()
+
+        employer_field_corrector = levenshtein_distance.SpellingCorrector(
+            employer_writer.fieldnames
+        )
+        spouse_employer_field_corrector = levenshtein_distance.SpellingCorrector(
+            spouse_employer_writer.fieldnames
+        )
 
         scraper = FinancialDisclosureScraper()
         for filer in scraper.scrape():
