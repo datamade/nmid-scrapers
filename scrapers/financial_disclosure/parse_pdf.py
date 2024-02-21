@@ -18,7 +18,10 @@ class SubstringDict:
 
 
 def _is_section(row: Row) -> bool:
-    return re.match(r"^\d+\. ?[A-Z]", row[0]) is not None  # type: ignore[arg-type]
+    return (
+        re.match(r"^\d+\. ?[A-Z]", row[0]) is not None  # type: ignore[arg-type]
+        or row[0].startswith("*Pursuant to NMSA 1978 §")  # ensure signature is its own section
+    )
 
 
 def _group_rows(rows: Iterable[Row]) -> dict[str, Rows]:
@@ -84,7 +87,7 @@ def parse_pdf(pdf: pdfplumber.PDF) -> dict[str, dict[str, str | None]]:
 
     grouped_rows = SubstringDict(_group_rows(rows))
 
-    return {
+    result = {
         "employer": _parse_employer(
             grouped_rows["REPORTING INDIVIDUAL - Employer Information"]
         ),
@@ -121,7 +124,15 @@ def parse_pdf(pdf: pdfplumber.PDF) -> dict[str, dict[str, str | None]]:
         "state agency representation": _parse_filing_status(
             grouped_rows["REPORTING INDIVIDUAL & REPORTING INDIVIDUAL’S SPOUSE\nState Agency Representation"]
         ),
-        "general info": _parse_general_info(
-            grouped_rows["REPORTING INDIVIDUAL & REPORTING INDIVIDUAL’S SPOUSE – General Information"]
-        ),
     }
+
+    try:
+        result["general info"] = _parse_general_info(
+            grouped_rows["REPORTING INDIVIDUAL & REPORTING INDIVIDUAL’S SPOUSE – General Information"]
+        )
+    except ValueError:
+        # this table may appear by itself on a page as a single cell if empty.
+        # pdfplumber will ignore it in this case, so this adds an empty input
+        result["general info"] = []
+
+    return result
