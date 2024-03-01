@@ -18,7 +18,10 @@ class SubstringDict:
 
 
 def _is_section(row: Row) -> bool:
-    return re.match(r"^\d+\. ?[A-Z]", row[0]) is not None  # type: ignore[arg-type]
+    return (
+        re.match(r"^\d+\. ?[A-Z]", row[0]) is not None  # type: ignore[arg-type]
+        or row[0].startswith("*Pursuant to NMSA 1978 §")  # ensure signature is its own section
+    )
 
 
 def _group_rows(rows: Iterable[Row]) -> dict[str, Rows]:
@@ -69,13 +72,24 @@ def _parse_filing_status(rows: Rows) -> dict[str, str | None]:
     return result
 
 
-def parse_pdf(pdf: pdfplumber.PDF) -> dict[str, dict[str, str | None]]:
+def _parse_general_info(rows: Rows) -> dict[str, str | None]:
 
-    rows = [tuple(row) for page in pdf.pages for row in page.extract_table()]  # type: ignore[union-attr]
+    header, *body = rows
+
+    result = [{"Input": val[0]} for val in body if val[0] != '']
+    
+    return result
+
+
+def parse_pdf(pdf: pdfplumber.PDF) -> dict[str, dict[str, str | None]]:
+    table_settings = {
+        "intersection_tolerance": 6, # minimum allowable tolerance to grab all tables
+    }
+    rows = [tuple(row) for page in pdf.pages for row in page.extract_table(table_settings=table_settings)]  # type: ignore[union-attr]
 
     grouped_rows = SubstringDict(_group_rows(rows))
 
-    return {
+    result = {
         "employer": _parse_employer(
             grouped_rows["REPORTING INDIVIDUAL - Employer Information"]
         ),
@@ -85,4 +99,36 @@ def parse_pdf(pdf: pdfplumber.PDF) -> dict[str, dict[str, str | None]]:
         "current filing status": _parse_filing_status(
             grouped_rows["REPORTING INDIVIDUAL – Current Filing Status"]
         ),
+        "income sources": _parse_filing_status(
+            grouped_rows["REPORTING INDIVIDUAL & REPORTING INDIVIDUAL’S SPOUSE – Income Source(s)"]
+        ),
+        "specializations": _parse_filing_status(
+            grouped_rows["REPORTING INDIVIDUAL & REPORTING INDIVIDUAL’S SPOUSE - Areas of Specialization"]
+        ),
+        "consulting or lobbying": _parse_filing_status(
+            grouped_rows["REPORTING INDIVIDUAL & REPORTING INDIVIDUAL’S SPOUSE - Consulting and/or Lobbying"]
+        ),
+        "real estate": _parse_filing_status(
+            grouped_rows["REPORTING INDIVIDUAL & REPORTING INDIVIDUAL’S SPOUSE – Real Estate"]
+        ),
+        "other business": _parse_filing_status(
+            grouped_rows["REPORTING INDIVIDUAL & REPORTING INDIVIDUAL’S SPOUSE – Other Business"]
+        ),
+        "board membership": _parse_filing_status(
+            grouped_rows["REPORTING INDIVIDUAL & REPORTING INDIVIDUAL’S SPOUSE\nBoard Membership"]
+        ),
+        "professional licenses": _parse_filing_status(
+            grouped_rows["REPORTING INDIVIDUAL & REPORTING INDIVIDUAL’S SPOUSE – Professional License(s)"]
+        ),
+        "provisions to state agencies": _parse_filing_status(
+            grouped_rows["REPORTING INDIVIDUAL & REPORTING INDIVIDUAL’S SPOUSE\nGoods and/or Services Provided to State Agencies"]
+        ),
+        "state agency representation": _parse_filing_status(
+            grouped_rows["REPORTING INDIVIDUAL & REPORTING INDIVIDUAL’S SPOUSE\nState Agency Representation"]
+        ),
+        "general info": _parse_general_info(
+            grouped_rows["REPORTING INDIVIDUAL & REPORTING INDIVIDUAL’S SPOUSE – General Information"]
+        ),
     }
+
+    return result
