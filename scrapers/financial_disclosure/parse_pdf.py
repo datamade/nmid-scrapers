@@ -85,7 +85,13 @@ def parse_pdf(pdf: pdfplumber.PDF) -> dict[str, dict[str, str | None]]:
     table_settings = {
         "intersection_tolerance": 6, # minimum allowable tolerance to grab all tables
     }
-    rows = [tuple(row) for page in pdf.pages for row in page.extract_table(table_settings=table_settings)]  # type: ignore[union-attr]
+
+    rows = []
+    for page in pdf.pages:
+        tables = page.extract_table(table_settings=table_settings)
+        if tables != None:
+            for row in tables:
+                rows.append(tuple(row))  # type: ignore[union-attr]
 
     grouped_rows = SubstringDict(_group_rows(rows))
 
