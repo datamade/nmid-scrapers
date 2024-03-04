@@ -59,31 +59,29 @@ writer.writeheader()
 
 s = scrapelib.Scraper(requests_per_minute=10)
 
-election_years = ("2021", "2022", "2023", "2024")
+ALPHABET = "abcdefghijklmnopqrstuvwxyz"
+
 payload = {
-    "jurisdiction": "",
-    "jurisdictionType": "",
-    "officeSought": "",
-    "year": None,
-    "district": "",
-    "pageNumber": None,
+    "searchText": "a",
+    "searchType": "Candidate/Officeholder",
+    "pageNumber": 1,
     "pageSize": 1000,
     "sortDir": "asc",
     "sortedBy": "",
 }
 
-for year in election_years:
+for letter in ALPHABET:
     page_number = 1
     page_size = 1000
     result_count = 1000
 
     while result_count == page_size:
-        logger.debug(f"Fetching page {page_number} for {year}")
+        logger.debug(f"Fetching page {page_number} for {letter}")
 
         _payload = payload.copy()
         _payload.update(
             {
-                "year": year,
+                "searchText": letter,
                 "pageNumber": page_number,
             }
         )
@@ -91,12 +89,12 @@ for year in election_years:
         logger.debug(_payload)
 
         response = s.get(
-            "https://login.cfis.sos.state.nm.us/api///Organization/GetOffices",
+            "https://login.cfis.sos.state.nm.us/api///Search/GetPublicSiteBasicSearchResult",
             params=_payload,
         )
 
         if response.ok:
-            results = response.json()
+            results = response.json()["CandidateInformationslist"]
             writer.writerows(results)
             result_count = len(results)
 

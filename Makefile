@@ -32,6 +32,13 @@ data/intermediate/filer.csv :
 data/processed/offices.csv :
 	python -m scrapers.office.scrape_offices > $@
 
+data/processed/candidate_committees.csv :
+	python -m scrapers.office.scrape_search candidates > $@
+
+data/processed/committees.csv :
+	python -m scrapers.office.scrape_search committees > $@
+
+
 # Lobbyist expenditures and contributions
 .PRECIOUS : data/intermediate/lobbyist_contributions.csv data/intermediate/lobbyist_expenditures.csv
 
