@@ -64,6 +64,7 @@ payload = {
 for row in tqdm(reader):
     _payload = payload.copy()
     _payload["LobbyistID"] = row["MemberID"]
+    _payload["LobbyistVersionID"] = row["MemberVersionID"]
 
     response = s.post(
         "https://login.cfis.sos.state.nm.us/api//ExploreClients/Fillings",
