@@ -99,10 +99,10 @@ data/intermediate/lobbyists.csv : data/raw/lobbyists.csv
 	USING (MemberID, MemberVersionID, Year, ClientID)" < $< > $@
 
 data/intermediate/clients.csv : data/raw/clients.csv
-	csvsql --query "SELECT ClientID, MAX(ClientName) AS ClientName FROM STDIN GROUP BY ClientID" < $< > $@
+	csvsql --query "SELECT ClientID, ClientVersionID, MAX(ClientName) AS ClientName FROM STDIN GROUP BY ClientID" < $< > $@
 
 data/intermediate/filings.csv : data/raw/lobbyists.csv
-	csvsql --query "SELECT DISTINCT MemberID FROM STDIN" < $< | \
+	csvsql --query "SELECT DISTINCT MemberID, MemberVersionID FROM STDIN" < $< | \
 	python -m scrapers.lobbyist.scrape_filings > $@
 
 data/raw/lobbyists.csv : data/intermediate/clients.csv

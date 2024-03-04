@@ -368,6 +368,7 @@ if __name__ == "__main__":
         )
 
         scraper = FinancialDisclosureScraper()
+        scraper.requests_per_minute = 0
         for filer in scraper.scrape():
             filer_writer.writerow(filer["FilerInfo"])
             filer_id = filer["FilerInfo"]["FilerID"]
