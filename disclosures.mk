@@ -1,11 +1,11 @@
 # Financial disclosures
-data/processed/disclosures.zip : data/processed/employment.csv			\
+data/processed/disclosures.xlsx : data/processed/employment.csv			\
 	                         data/processed/specialization.csv		\
 	                         data/processed/lobbying_clients.csv		\
 	                         data/processed/real_estate.csv			\
 	                         data/processed/other_business_interests.csv	\
 	                         data/processed/state_agencies.csv
-	zip $@ $^
+	python scripts/to_excel.py $^ $@
 
 data/processed/employment.csv : data/intermediate/base.csv		\
                                 data/intermediate/employer.csv		\
@@ -55,15 +55,6 @@ data/processed/state_agencies.csv : data/intermediate/base.csv			\
            python scripts/uniq_csv.py > $@
 
 
-data/intermediate/income.csv data/intermediate/real_estate.csv		\
-data/intermediate/consulting.csv data/intermediate/filing.csv		\
-data/intermediate/licenses.csv data/intermediate/representation.csv	\
-data/intermediate/filing_status.csv data/intermediate/membership.csv	\
-data/intermediate/specializations.csv data/intermediate/employer.csv	\
-data/intermediate/general.csv data/intermediate/provisions.csv		\
-data/intermediate/spouse_employer.csv &:
-	python -m scrapers.financial_disclosure.scrape_financial_disclosures
-
 
 data/intermediate/base.csv : data/intermediate/filer.csv data/intermediate/filing.csv data/intermediate/filing_status.csv
 	csvcut -c FilerID,ReportID,FilingYear,FiledDate data/intermediate/filing.csv | \
@@ -73,3 +64,14 @@ data/intermediate/base.csv : data/intermediate/filer.csv data/intermediate/filin
            csvsort | \
            python scripts/uniq_csv.py | \
            python scripts/reason_filter.py > $@
+
+
+data/intermediate/income.csv data/intermediate/real_estate.csv		\
+data/intermediate/consulting.csv data/intermediate/filing.csv		\
+data/intermediate/licenses.csv data/intermediate/representation.csv	\
+data/intermediate/filing_status.csv data/intermediate/membership.csv	\
+data/intermediate/specializations.csv data/intermediate/employer.csv	\
+data/intermediate/general.csv data/intermediate/provisions.csv		\
+data/intermediate/spouse_employer.csv &:
+	python -m scrapers.financial_disclosure.scrape_financial_disclosures
+
