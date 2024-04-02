@@ -66,9 +66,10 @@ data/intermediate/base.csv : data/intermediate/filer.csv data/intermediate/filin
            python scripts/reason_filter.py > $@
 
 
-data/intermediate/income.csv data/intermediate/real_estate.csv		\
-data/intermediate/consulting.csv data/intermediate/filing.csv		\
-data/intermediate/licenses.csv data/intermediate/representation.csv	\
+data/intermediate/filer.csv data/intermediate/income.csv		\
+data/intermediate/real_estate.csv data/intermediate/consulting.csv	\
+data/intermediate/filing.csv data/intermediate/licenses.csv		\
+data/intermediate/representation.csv					\
 data/intermediate/filing_status.csv data/intermediate/membership.csv	\
 data/intermediate/specializations.csv data/intermediate/employer.csv	\
 data/intermediate/general.csv data/intermediate/provisions.csv		\
