@@ -1,22 +1,28 @@
 # Financial disclosures
 data/processed/disclosures.xlsx : data/processed/employment.csv			\
-	                         data/processed/specialization.csv		\
-	                         data/processed/lobbying_clients.csv		\
-	                         data/processed/real_estate.csv			\
-	                         data/processed/other_business_interests.csv	\
-	                         data/processed/state_agencies.csv
+                                  data/processed/income.csv			\
+                                  data/processed/specialization.csv		\
+                                  data/processed/lobbying_clients.csv		\
+                                  data/processed/real_estate.csv		\
+                                  data/processed/other_business_interests.csv	\
+                                  data/processed/state_agencies.csv
 	python scripts/to_excel.py $^ $@
 
 data/processed/employment.csv : data/intermediate/base.csv		\
                                 data/intermediate/employer.csv		\
                                 data/intermediate/spouse_employer.csv	\
-                                data/intermediate/income.csv
 	csvjoin -c ReportID --left data/intermediate/base.csv data/intermediate/employer.csv | \
             csvjoin --left -c ReportID - data/intermediate/spouse_employer.csv | \
-            csvjoin --left -c ReportID - data/intermediate/income.csv | \
             csvsort | \
             python scripts/uniq_csv.py | \
             python scripts/stack.py data/headers/employment.csv > $@
+
+
+data/processed/income.csv : data/intermediate/base.csv data/intermediate/income.csv
+	csvjoin -c ReportID --left data/intermediate/base.csv data/intermediate/income.csv | \
+            csvsort | \
+            python scripts/uniq_csv.py | \
+            python scripts/stack.py data/headers/income.csv > $@
 
 
 data/processed/specialization.csv : data/intermediate/base.csv			\
