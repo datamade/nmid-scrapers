@@ -1,6 +1,10 @@
 import logging
+import io
 import scrapelib
 import sys
+import pdfplumber
+
+from .parse_pdf import parse_pdf
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
@@ -81,7 +85,6 @@ class SearchScraper(scrapelib.Scraper):
         logger.debug(f"Last page {page_number} had {result_count} results")
 
     def scrape(self):
-
         for search_result in self._search_results(
             self.search_type, self.result_key, self.id_key
         ):
@@ -89,9 +92,41 @@ class SearchScraper(scrapelib.Scraper):
                 self.detail_endpoint, params={"memberId": search_result[self.id_key]}
             )
 
-            for year_data in response.json():
+            params = {
+                "officeID": search_result["OfficeId"],
+                "electionYear": "All",
+                "districtId": search_result["DistrictId"],
+                "electionId": int(search_result["ElectionId"]),
+                "FilerNameLink": "exploreDetails",
+                "pageNumber": 1,
+                "pageSize": 100,
+            }
+            if self.search_type == "Committee":
+                params["committeeID"] = search_result["IdNumber"]
+            else:
+                params["committeeID"] = search_result["IDNumber"]
 
-                yield update_not_null(search_result, year_data)
+            try:
+                filings = self.get(
+                    "https://login.cfis.sos.state.nm.us/api///Filing/GetFilings",
+                    params=params,
+                ).json()
+            except scrapelib.HTTPError as e:
+                logging.error(e, search_result)
+                breakpoint()
+
+            for filing in filings:
+                pdf = self.get(
+                    f"https://login.cfis.sos.state.nm.us//ReportsOutput//{filing['ReportFileName']}"
+                )
+                filing_pdf = pdfplumber.open(io.BytesIO(pdf.content))
+                filing_table = parse_pdf(filing_pdf)
+                print(filing_table)
+
+            yearly_info = [
+                update_not_null(search_result, year_data)
+                for year_data in response.json()
+            ]
 
 
 if __name__ == "__main__":
