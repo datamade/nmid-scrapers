@@ -10,7 +10,7 @@ data/processed/disclosures.xlsx : data/processed/employment.csv			\
 
 data/processed/employment.csv : data/intermediate/base.csv		\
                                 data/intermediate/employer.csv		\
-                                data/intermediate/spouse_employer.csv	\
+                                data/intermediate/spouse_employer.csv
 	csvjoin -c ReportID --left data/intermediate/base.csv data/intermediate/employer.csv | \
             csvjoin --left -c ReportID - data/intermediate/spouse_employer.csv | \
             csvsort | \
