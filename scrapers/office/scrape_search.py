@@ -257,14 +257,18 @@ if __name__ == "__main__":
         if filing_writer is None and filings:
 
             filing_writer = csv.DictWriter(
-                filing_file, fieldnames=["StateID"] + list(filings[0].keys())
+                filing_file,
+                fieldnames=["StateID", "CommitteeName"] + list(filings[0].keys()),
             )
             filing_writer.writeheader()
 
         for year in years:
             committee_writer.writerow(year)
 
-        state_id = years[0]["StateID"]
+        extra = {
+            "StateID": years[0]["StateID"],
+            "CommitteeName": years[0]["CommitteeName"],
+        }
 
         for filing in filings:
-            filing_writer.writerow(filing | {"StateID": state_id})
+            filing_writer.writerow(filing | extra)
