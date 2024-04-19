@@ -18,10 +18,13 @@ class SubstringDict:
 
 
 def _is_section(row: Row) -> bool:
-    return (
-        re.match(r"^\d+\. ?[A-Z]", row[0]) is not None  # type: ignore[arg-type]
-        or row[0].startswith("*Pursuant to NMSA 1978 §")  # ensure signature is its own section
-    )
+    return re.match(
+        r"^\d+\. ?[A-Z]", row[0]
+    ) is not None or row[  # type: ignore[arg-type]
+        0
+    ].startswith(
+        "*Pursuant to NMSA 1978 §"
+    )  # ensure signature is its own section
 
 
 def _group_rows(rows: Iterable[Row]) -> dict[str, Rows]:
@@ -76,14 +79,14 @@ def _parse_general_info(rows: Rows) -> dict[str, str | None]:
 
     header, *body = rows
 
-    result = [{"Input": val[0]} for val in body if val[0] != '']
-    
+    result = [{"Input": val[0]} for val in body if val[0] != ""]
+
     return result
 
 
 def parse_pdf(pdf: pdfplumber.PDF) -> dict[str, dict[str, str | None]]:
     table_settings = {
-        "intersection_tolerance": 6, # minimum allowable tolerance to grab all tables
+        "intersection_tolerance": 6,  # minimum allowable tolerance to grab all tables
     }
 
     rows = [tuple(row) for page in pdf.pages if (table := page.extract_table(table_settings=table_settings)) for row in table]  # type: ignore[union-attr]
@@ -101,34 +104,54 @@ def parse_pdf(pdf: pdfplumber.PDF) -> dict[str, dict[str, str | None]]:
             grouped_rows["REPORTING INDIVIDUAL – Current Filing Status"]
         ),
         "income sources": _parse_filing_status(
-            grouped_rows["REPORTING INDIVIDUAL & REPORTING INDIVIDUAL’S SPOUSE – Income Source(s)"]
+            grouped_rows[
+                "REPORTING INDIVIDUAL & REPORTING INDIVIDUAL’S SPOUSE – Income Source(s)"
+            ]
         ),
         "specializations": _parse_filing_status(
-            grouped_rows["REPORTING INDIVIDUAL & REPORTING INDIVIDUAL’S SPOUSE - Areas of Specialization"]
+            grouped_rows[
+                "REPORTING INDIVIDUAL & REPORTING INDIVIDUAL’S SPOUSE - Areas of Specialization"
+            ]
         ),
         "consulting or lobbying": _parse_filing_status(
-            grouped_rows["REPORTING INDIVIDUAL & REPORTING INDIVIDUAL’S SPOUSE - Consulting and/or Lobbying"]
+            grouped_rows[
+                "REPORTING INDIVIDUAL & REPORTING INDIVIDUAL’S SPOUSE - Consulting and/or Lobbying"
+            ]
         ),
         "real estate": _parse_filing_status(
-            grouped_rows["REPORTING INDIVIDUAL & REPORTING INDIVIDUAL’S SPOUSE – Real Estate"]
+            grouped_rows[
+                "REPORTING INDIVIDUAL & REPORTING INDIVIDUAL’S SPOUSE – Real Estate"
+            ]
         ),
         "other business": _parse_filing_status(
-            grouped_rows["REPORTING INDIVIDUAL & REPORTING INDIVIDUAL’S SPOUSE – Other Business"]
+            grouped_rows[
+                "REPORTING INDIVIDUAL & REPORTING INDIVIDUAL’S SPOUSE – Other Business"
+            ]
         ),
         "board membership": _parse_filing_status(
-            grouped_rows["REPORTING INDIVIDUAL & REPORTING INDIVIDUAL’S SPOUSE\nBoard Membership"]
+            grouped_rows[
+                "REPORTING INDIVIDUAL & REPORTING INDIVIDUAL’S SPOUSE\nBoard Membership"
+            ]
         ),
         "professional licenses": _parse_filing_status(
-            grouped_rows["REPORTING INDIVIDUAL & REPORTING INDIVIDUAL’S SPOUSE – Professional License(s)"]
+            grouped_rows[
+                "REPORTING INDIVIDUAL & REPORTING INDIVIDUAL’S SPOUSE – Professional License(s)"
+            ]
         ),
         "provisions to state agencies": _parse_filing_status(
-            grouped_rows["REPORTING INDIVIDUAL & REPORTING INDIVIDUAL’S SPOUSE\nGoods and/or Services Provided to State Agencies"]
+            grouped_rows[
+                "REPORTING INDIVIDUAL & REPORTING INDIVIDUAL’S SPOUSE\nGoods and/or Services Provided to State Agencies"
+            ]
         ),
         "state agency representation": _parse_filing_status(
-            grouped_rows["REPORTING INDIVIDUAL & REPORTING INDIVIDUAL’S SPOUSE\nState Agency Representation"]
+            grouped_rows[
+                "REPORTING INDIVIDUAL & REPORTING INDIVIDUAL’S SPOUSE\nState Agency Representation"
+            ]
         ),
         "general info": _parse_general_info(
-            grouped_rows["REPORTING INDIVIDUAL & REPORTING INDIVIDUAL’S SPOUSE – General Information"]
+            grouped_rows[
+                "REPORTING INDIVIDUAL & REPORTING INDIVIDUAL’S SPOUSE – General Information"
+            ]
         ),
     }
 

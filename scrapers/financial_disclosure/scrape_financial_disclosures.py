@@ -106,7 +106,6 @@ if __name__ == "__main__":
         open("data/intermediate/provisions.csv", "w") as provisions_file,
         open("data/intermediate/representation.csv", "w") as representation_file,
         open("data/intermediate/general.csv", "w") as general_file,
-
     ):
         filer_writer = csv.DictWriter(
             filer_file,
@@ -174,7 +173,7 @@ if __name__ == "__main__":
                 "Reporting individual",
                 "Office / Board or Commission / Agency Name",
                 "Date Assumed Office, Employed, or Appointed",
-                "ReportID"
+                "ReportID",
             ],
         )
         income_writer = csv.DictWriter(
@@ -182,7 +181,7 @@ if __name__ == "__main__":
             [
                 "Income source (*see pg. 4):",
                 "Received by (list the name of the reporting individual or spouse):",
-                "ReportID"
+                "ReportID",
             ],
         )
         specializations_writer = csv.DictWriter(
@@ -190,7 +189,7 @@ if __name__ == "__main__":
             [
                 "Describe the major areas of specialization or sources of income.",
                 "Received by (list the name of the reporting individual or spouse):",
-                "ReportID"
+                "ReportID",
             ],
         )
         consulting_writer = csv.DictWriter(
@@ -198,17 +197,12 @@ if __name__ == "__main__":
             [
                 "Client name & address:",
                 "Represented by: List the name of the reporting individual’s firm or spouse’s firm",
-                "ReportID"
+                "ReportID",
             ],
         )
         real_estate_writer = csv.DictWriter(
             real_estate_file,
-            [
-                "Owner",
-                "County",
-                "General Description",
-                "ReportID"
-            ],
+            ["Owner", "County", "General Description", "ReportID"],
         )
         business_writer = csv.DictWriter(
             business_file,
@@ -217,7 +211,7 @@ if __name__ == "__main__":
                 "Position held:",
                 "General statement of business purpose:",
                 "Received by (list the name of the reporting individual or spouse):",
-                "ReportID"
+                "ReportID",
             ],
         )
         membership_writer = csv.DictWriter(
@@ -225,7 +219,7 @@ if __name__ == "__main__":
             [
                 "Name of business:",
                 "Board member (list the name of the reporting individual or spouse):",
-                "ReportID"
+                "ReportID",
             ],
         )
         licenses_writer = csv.DictWriter(
@@ -233,7 +227,7 @@ if __name__ == "__main__":
             [
                 "Type of license:",
                 "Individual holding license (list the name of the reporting individual or spouse):",
-                "ReportID"
+                "ReportID",
             ],
         )
         provisions_writer = csv.DictWriter(
@@ -241,7 +235,7 @@ if __name__ == "__main__":
             [
                 "State agency to which goods and/or services were provided:",
                 "Individual providing goods or services (list the name of the reporting individual or spouse):",
-                "ReportID"
+                "ReportID",
             ],
         )
         representation_writer = csv.DictWriter(
@@ -249,15 +243,12 @@ if __name__ == "__main__":
             [
                 "State agency (other than a court):",
                 "Individual assisting client (list the name of the reporting individual or spouse):",
-                "ReportID"
+                "ReportID",
             ],
         )
         general_writer = csv.DictWriter(
             general_file,
-            [
-                "Input",
-                "ReportID"
-            ],
+            ["Input", "ReportID"],
         )
 
         # pdf fields that return lists of similarly structured dicts
@@ -348,8 +339,8 @@ if __name__ == "__main__":
                 "corrector": levenshtein_distance.SpellingCorrector(
                     general_writer.fieldnames
                 ),
-                "accessor": "general info"
-            }
+                "accessor": "general info",
+            },
         }
 
         for pdf_field in mapping_dict.values():
@@ -403,8 +394,5 @@ if __name__ == "__main__":
                     writer = pdf_field["writer"]
 
                     for entry in extracted_info[accessor]:
-                        field_data = {
-                            corrector.correct(k): v
-                            for k, v in entry.items()
-                        }
+                        field_data = {corrector.correct(k): v for k, v in entry.items()}
                         writer.writerow(field_data | {"ReportID": report_id})

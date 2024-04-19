@@ -98,7 +98,7 @@ class SearchScraper(scrapelib.Scraper, abc.ABC):
         if filing["ReportVersionID"] > 1:
             version_response = self.get(
                 "https://login.cfis.sos.state.nm.us/api///Filing/GetFilingHistory",
-                params={"reportID": filing["ReportVersionID"]},
+                params={"reportID": filing["ReportID"]},
             )
             versions.extend(version_response.json())
 
@@ -152,6 +152,7 @@ class CandidateScraper(SearchScraper):
         self.result_key = "CandidateInformationslist"
         self.id_key = "IDNumber"
         self.detail_endpoint = "https://login.cfis.sos.state.nm.us/api///Organization/GetCandidatesInformation"
+        self.committee_key = "PoliticalPartyCommitteeName"
 
     def _filings(self, search_result):
         payload = {
@@ -188,6 +189,7 @@ class CommitteeScraper(SearchScraper):
         self.result_key = "CommitteeInformationlist"
         self.id_key = "IdNumber"
         self.detail_endpoint = "https://login.cfis.sos.state.nm.us/api///Organization/GetCommitteeInformation"
+        self.committee_key = "CommitteeName"
 
     def _filings(self, search_result):
         payload = {
@@ -222,19 +224,22 @@ class CommitteeScraper(SearchScraper):
 
 if __name__ == "__main__":
     import csv
+    import pathlib
     from scrapelib.cache import FileCache
 
     cache = FileCache("cache")
 
+    output_dir = pathlib.Path("data/processed")
+
     if sys.argv[1] == "candidates":
         scraper_klass = CandidateScraper
-        committee_file = open("candidate_committees.csv", "w")
-        filing_file = open("candidate_committee_filings.csv", "w")
+        committee_file = open(output_dir / "candidate_committees.csv", "w")
+        filing_file = open(output_dir / "candidate_committee_filings.csv", "w")
 
     elif sys.argv[1] == "committees":
         scraper_klass = CommitteeScraper
-        committee_file = open("pac_committees.csv", "w")
-        filing_file = open("pac_committee_filings.csv", "w")
+        committee_file = open(output_dir / "pac_committees.csv", "w")
+        filing_file = open(output_dir / "pac_committee_filings.csv", "w")
 
     scraper = scraper_klass(requests_per_minute=0, retry_attempts=3)
     scraper.timeout = 10
@@ -267,7 +272,7 @@ if __name__ == "__main__":
 
         extra = {
             "StateID": years[0]["StateID"],
-            "CommitteeName": years[0]["CommitteeName"],
+            "CommitteeName": years[0][scraper.committee_key],
         }
 
         for filing in filings:

@@ -126,8 +126,6 @@ class SpellingCorrector:
         if text in self.corpus:
             return text
 
-        best_guess = min(
-            self.corpus, key=lambda x: levenshtein_distance(x, text)
-        )
+        best_guess = min(self.corpus, key=lambda x: levenshtein_distance(x, text))
 
         return best_guess
