@@ -175,7 +175,7 @@ class CandidateScraper(SearchScraper):
 
         for filing in filings:
             for version in self._versions(filing):
-                if version["FilerType"] in {"Candidate"}:
+                if version["FilerType"] in {"Candidate"} and version["Amended"] == 0:
                     version = version | self._parse_filing_pdf(version)
                 data.append(version)
 
