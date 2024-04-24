@@ -27,7 +27,7 @@ class SubstringDict:
 def update_not_null(d1, d2):
 
     for k, v in d2.items():
-        if (d1.get(k) is None) or (v is not None):
+        if not d1.get(k):
             d1[k] = v
     return d1
 
@@ -146,7 +146,7 @@ class SearchScraper(scrapelib.Scraper, abc.ABC):
             data = {
                 "filings": self._filings(search_result),
                 "yearly_info": [
-                    update_not_null(search_result, year_data)
+                    update_not_null(year_data, search_result)
                     for year_data in response.json()
                 ],
             }
@@ -222,10 +222,7 @@ class CommitteeScraper(SearchScraper):
         for filing in filings:
             for version in self._versions(filing):
                 if version["FilerType"] in {"Political Committee"}:
-                    try:
-                        version = version | self._parse_filing_pdf(version)
-                    except:
-                        breakpoint()
+                    version = version | self._parse_filing_pdf(version)
                 data.append(version)
 
         return data
