@@ -20,6 +20,9 @@ class SubstringDict:
         (actual_key,) = [key for key in self._d.keys() if target_key in key]
         return self._d[actual_key]
 
+    def __repr__(self):
+        return repr(self._d)
+
 
 def update_not_null(d1, d2):
 
@@ -122,7 +125,13 @@ class SearchScraper(scrapelib.Scraper, abc.ABC):
                     "closing_balance": version_table[
                         "Closing Balance this Reporting Period"
                     ],
+                    "contributions": version_table["Total Monetary Contributions"],
+                    "expenditures": version_table["Total Expenditures"],
+                    "special_events": version_table[
+                        "Total Amount Raised from one or more Special Events"
+                    ],
                 }
+
         else:
             return {}
 
