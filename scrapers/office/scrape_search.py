@@ -130,6 +130,9 @@ class SearchScraper(scrapelib.Scraper, abc.ABC):
                     "special_events": version_table[
                         "Total Amount Raised from one or more Special Events"
                     ],
+                    "unpaid_debt": version_table["Total Unpaid Campaign Debt"],
+                    "total_loans": version_table["Total Loans To the Committee"],
+                    "total_inkind": version_table["Total In-Kind Contributions"],
                 }
 
         else:
