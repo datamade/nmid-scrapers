@@ -10,6 +10,8 @@ from scrapers.financial_disclosure import levenshtein_distance, parse_pdf
 
 class FinancialDisclosureScraper(scrapelib.Scraper):
     def _filers(self) -> Generator[dict[str, dict], None, None]:
+        PAGE_SIZE = 5000
+
         years = self.get(
             "https://login.cfis.sos.state.nm.us/api///SfiExploreFiler/GetFilerDetailsYear"
         ).json()
@@ -22,7 +24,7 @@ class FinancialDisclosureScraper(scrapelib.Scraper):
             "DistrictID": None,
             "AgencyID": None,
             "pageNumber": 1,
-            "pageSize": 10,
+            "pageSize": PAGE_SIZE,
             "sortDir": "ASC",
         }
 
@@ -37,15 +39,21 @@ class FinancialDisclosureScraper(scrapelib.Scraper):
 
                 if total is None:
                     pbar.total = total = response.json()[0]["TotalRows"]
+                    assert total >= 1721
                     pbar.refresh()
 
                 for filer in response.json():
+                    # setting "year" to filer["FilingYear"] gets us
+                    # the most recent filing.
+                    #
+                    # if we want to get all, historical filings set
+                    # "year" to 0.
                     params = {
                         "MemberID": filer["IDNumber"],
                         "MemberVersionID": filer["MemberVersionID"],
                         "year": filer["FilingYear"],
                         "pageNumber": 1,
-                        "pageSize": 10,
+                        "pageSize": PAGE_SIZE,
                         "sortBy": "ReportType",
                         "sortDir": "asc",
                     }
@@ -56,14 +64,16 @@ class FinancialDisclosureScraper(scrapelib.Scraper):
                     )
 
                     assert (
-                        len(filer_detail_response.json()["FilterDetailList"]) <= 10
-                    ), f"More than 10 filings in this detail page, we may need to implement paging: {filer_detail_response.request.url}."
+                        len(filer_detail_response.json()["FilterDetailList"])
+                        <= PAGE_SIZE
+                    ), f"More than {PAGE_SIZE} filings in this detail page, we may need to implement paging: {filer_detail_response.request.url}."
 
                     yield filer_detail_response.json()
 
                     pbar.update(1)
 
-                if len(response.json()) < 10:
+                if len(response.json()) < PAGE_SIZE:
+                    assert pbar.n == pbar.total
                     break
                 else:
                     payload["pageNumber"] += 1  # type: ignore[operator]
