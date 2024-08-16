@@ -368,7 +368,7 @@ if __name__ == "__main__":
             spouse_employer_writer.fieldnames
         )
 
-        scraper = FinancialDisclosureScraper()
+        scraper = FinancialDisclosureScraper(verify=False)
         scraper.requests_per_minute = 0
         for filer in scraper.scrape():
             filer_writer.writerow(filer["FilerInfo"])

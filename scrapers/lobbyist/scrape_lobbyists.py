@@ -62,7 +62,7 @@ writer = csv.DictWriter(
 
 writer.writeheader()
 
-s = scrapelib.Scraper(requests_per_minute=0, retry_attempts=3)
+s = scrapelib.Scraper(requests_per_minute=0, retry_attempts=3, verify=False)
 
 payload = {
     "PageNo": 1,

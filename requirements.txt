@@ -1,4 +1,4 @@
-scrapelib
+https://github.com/fgregg/scrapelib/archive/refs/heads/patch-2.zip
 pdfplumber
 tqdm
 csvkit

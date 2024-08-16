@@ -57,7 +57,7 @@ writer = csv.DictWriter(
 
 writer.writeheader()
 
-s = scrapelib.Scraper(requests_per_minute=10)
+s = scrapelib.Scraper(requests_per_minute=10, verify=False)
 
 election_years = ("2021", "2022", "2023", "2024")
 payload = {

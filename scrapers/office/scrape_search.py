@@ -159,7 +159,7 @@ class SearchScraper(scrapelib.Scraper, abc.ABC):
 
 class CandidateScraper(SearchScraper):
     def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+        super().__init__(**kwargs, verify=False)
         self.search_type = "Candidate/Officeholder"
         self.result_key = "CandidateInformationslist"
         self.id_key = "IDNumber"
