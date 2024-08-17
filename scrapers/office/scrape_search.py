@@ -159,7 +159,7 @@ class SearchScraper(scrapelib.Scraper, abc.ABC):
 
 class CandidateScraper(SearchScraper):
     def __init__(self, **kwargs):
-        super().__init__(**kwargs, verify=False)
+        super().__init__(**kwargs)
         self.search_type = "Candidate/Officeholder"
         self.result_key = "CandidateInformationslist"
         self.id_key = "IDNumber"
@@ -250,7 +250,7 @@ if __name__ == "__main__":
         committee_file = open(output_dir / "pac_committees.csv", "w")
         filing_file = open(output_dir / "pac_committee_filings.csv", "w")
 
-    scraper = scraper_klass(requests_per_minute=0, retry_attempts=3)
+    scraper = scraper_klass(requests_per_minute=0, retry_attempts=3, verify=False)
     scraper.timeout = 10
     scraper.cache_storage = cache
     scraper.cache_write_only = False
