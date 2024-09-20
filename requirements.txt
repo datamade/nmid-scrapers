@@ -7,3 +7,4 @@ awscli
 csvkit
 pyOpenSSL>=23.3.0 
 pandas
+click

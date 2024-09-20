@@ -60,12 +60,24 @@ data/intermediate/lobbyists.csv : data/raw/lobbyists.csv
 data/intermediate/clients.csv : data/raw/clients.csv
 	csvsql --query "SELECT ClientID, ClientVersionID, MAX(ClientName) AS ClientName FROM STDIN GROUP BY ClientID" < $< > $@
 
-data/intermediate/filings.csv : data/raw/lobbyists.csv
-	csvsql --query "SELECT DISTINCT MemberID, MemberVersionID FROM STDIN" < $< | \
+# Concatenate individual lobbyist and lobbyist employer filings
+data/intermediate/filings.csv : data/intermediate/employer_filings.csv data/intermediate/individual_filings.csv
+	tail -n +2 data/intermediate/individual_filings.csv > data/intermediate/individual_filings_rows.csv; \
+	cat data/intermediate/employer_filings.csv data/intermediate/individual_filings_rows.csv > $@
+
+data/intermediate/individual_filings.csv : data/raw/lobbyists.csv
+	csvsql --query "SELECT DISTINCT MemberID AS id, MemberVersionID AS version FROM STDIN" < $< | \
 	python -m scrapers.lobbyist.scrape_filings > $@
+
+data/intermediate/employer_filings.csv : data/raw/employers.csv
+	csvsql --query "SELECT DISTINCT LobbyMemberID AS id, LobbyMemberversionid AS version FROM STDIN" < $< | \
+	python -m scrapers.lobbyist.scrape_filings --employer > $@
 
 data/raw/lobbyists.csv : data/intermediate/clients.csv
 	python -m scrapers.lobbyist.scrape_lobbyists < $< > $@
+
+data/raw/employers.csv : 
+	python -m scrapers.lobbyist.scrape_employers > $@
 
 data/raw/clients.csv :
 	python -m scrapers.lobbyist.scrape_clients > $@
