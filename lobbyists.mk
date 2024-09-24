@@ -62,8 +62,7 @@ data/intermediate/clients.csv : data/raw/clients.csv
 
 # Concatenate individual lobbyist and lobbyist employer filings
 data/intermediate/filings.csv : data/intermediate/employer_filings.csv data/intermediate/individual_filings.csv
-	tail -n +2 data/intermediate/individual_filings.csv > data/intermediate/individual_filings_rows.csv; \
-	cat data/intermediate/employer_filings.csv data/intermediate/individual_filings_rows.csv > $@
+	csvstack $^ > $@
 
 data/intermediate/individual_filings.csv : data/raw/lobbyists.csv
 	csvsql --query "SELECT DISTINCT MemberID AS id, MemberVersionID AS version FROM STDIN" < $< | \
