@@ -18,15 +18,20 @@ class LobbyistScraper(ABC, scrapelib.Scraper):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+    @property
+    @abstractmethod
+    def url(self):
+        pass
+
     @abstractmethod
     def _get_payload(self, id, version):
         pass
 
-    def scrape(self, url, id, version):
+    def scrape(self, id, version):
         payload = self._get_payload(id, version)
 
         response = self.post(
-            url,
+            self.url,
             data=json.dumps(payload),
             headers={"Content-Type": "application/json"},
             verify=False,
@@ -40,7 +45,9 @@ class LobbyistScraper(ABC, scrapelib.Scraper):
 
 
 class LobbyistEmployerScraper(LobbyistScraper):
-    url = "https://login.cfis.sos.state.nm.us/api//ExploreClients/Disclosures"
+    @property
+    def url(self):
+        return "https://login.cfis.sos.state.nm.us/api//ExploreClients/Disclosures"
 
     def _get_payload(self, id, version):
         return {
@@ -53,12 +60,11 @@ class LobbyistEmployerScraper(LobbyistScraper):
             "ClientVersionID": version,
         }
 
-    def scrape(self, id, version):
-        return super().scrape(self.__class__.url, id, version)
-
 
 class IndividualLobbyistScraper(LobbyistScraper):
-    url = "https://login.cfis.sos.state.nm.us/api//ExploreClients/Fillings"
+    @property
+    def url(self):
+        return "https://login.cfis.sos.state.nm.us/api//ExploreClients/Fillings"
 
     def _get_payload(self, id, version):
         return {
@@ -70,9 +76,6 @@ class IndividualLobbyistScraper(LobbyistScraper):
             "LobbyistID": id,
             "LobbyistVersionID": version,
         }
-
-    def scrape(self, id, version):
-        return super().scrape(self.__class__.url, id, version)
 
 
 @click.command()
