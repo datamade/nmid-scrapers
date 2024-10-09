@@ -1,6 +1,11 @@
 # Lobbyist expenditures and contributions
 .PRECIOUS : data/intermediate/lobbyist_contributions.csv data/intermediate/lobbyist_expenditures.csv
 
+data/processed/lobbyists.xlsx : data/processed/lobbyist_employer.csv      \
+								data/processed/lobbyist_contributions.csv \
+								data/processed/lobbyist_expenditures.csv
+	python scripts/to_excel.py $^ $@
+
 data/processed/lobbyist_employer.csv : data/raw/lobbyists.csv data/intermediate/clients.csv
 	csvsql --query "SELECT \
 		ClientID, \
