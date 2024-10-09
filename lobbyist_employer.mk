@@ -1,32 +1,32 @@
 # Lobbyist expenditures and contributions
-DATA_DIR=data/lobbyist_employer
+LOBBYIST_EMPLOYER_DATA_DIR=data/lobbyist_employer
 
-.PRECIOUS : $(DATA_DIR)/raw/lobbyist_employer.csv \
-	$(DATA_DIR)/intermediate/lobbyist_employer_contributions.csv \
-	$(DATA_DIR)/intermediate/lobbyist_employer_expenditures.csv
+.PRECIOUS : $(LOBBYIST_EMPLOYER_DATA_DIR)/raw/lobbyist_employer.csv \
+	$(LOBBYIST_EMPLOYER_DATA_DIR)/intermediate/lobbyist_employer_contributions.csv \
+	$(LOBBYIST_EMPLOYER_DATA_DIR)/intermediate/lobbyist_employer_expenditures.csv
 
-$(DATA_DIR)/processed/lobbyist_employer.xlsx : $(DATA_DIR)/intermediate/lobbyist_employer.csv      \
-								$(DATA_DIR)/processed/lobbyist_employer_contributions.csv \
-								$(DATA_DIR)/processed/lobbyist_employer_expenditures.csv
+$(LOBBYIST_EMPLOYER_DATA_DIR)/processed/lobbyist_employer.xlsx : $(LOBBYIST_EMPLOYER_DATA_DIR)/intermediate/lobbyist_employer.csv      \
+								$(LOBBYIST_EMPLOYER_DATA_DIR)/processed/lobbyist_employer_contributions.csv \
+								$(LOBBYIST_EMPLOYER_DATA_DIR)/processed/lobbyist_employer_expenditures.csv
 	python scripts/to_excel.py $^ $@
 
-$(DATA_DIR)/processed/lobbyist_employer_%.csv : $(DATA_DIR)/intermediate/lobbyist_employer_%.csv \
-	$(DATA_DIR)/intermediate/lobbyist_employer_filings.csv \
-	$(DATA_DIR)/intermediate/lobbyist_employer.csv
+$(LOBBYIST_EMPLOYER_DATA_DIR)/processed/lobbyist_employer_%.csv : $(LOBBYIST_EMPLOYER_DATA_DIR)/intermediate/lobbyist_employer_%.csv \
+	$(LOBBYIST_EMPLOYER_DATA_DIR)/intermediate/lobbyist_employer_filings.csv \
+	$(LOBBYIST_EMPLOYER_DATA_DIR)/intermediate/lobbyist_employer.csv
 	csvjoin --left -c Source,ReportFileName $< $(word 2, $^) | \
 	csvjoin --left -c MemberID,LobbyMemberID - $(word 3, $^) > $@
 
-$(DATA_DIR)/intermediate/lobbyist_employer_%.csv : lobbyist_employer_filings
-	python -m scrapers.lobbyist.extract_transactions $* $(DATA_DIR) > $@
+$(LOBBYIST_EMPLOYER_DATA_DIR)/intermediate/lobbyist_employer_%.csv : lobbyist_employer_filings
+	python -m scrapers.lobbyist.extract_transactions $* $(LOBBYIST_EMPLOYER_DATA_DIR) > $@
 
-lobbyist_employer_filings : $(DATA_DIR)/intermediate/lobbyist_employer_filings.csv
-	python -m scrapers.lobbyist.download_filings $(DATA_DIR) < $<
+lobbyist_employer_filings : $(LOBBYIST_EMPLOYER_DATA_DIR)/intermediate/lobbyist_employer_filings.csv
+	python -m scrapers.lobbyist.download_filings $(LOBBYIST_EMPLOYER_DATA_DIR) < $<
 
-$(DATA_DIR)/intermediate/lobbyist_employer_filings.csv : $(DATA_DIR)/raw/lobbyist_employer.csv
+$(LOBBYIST_EMPLOYER_DATA_DIR)/intermediate/lobbyist_employer_filings.csv : $(LOBBYIST_EMPLOYER_DATA_DIR)/raw/lobbyist_employer.csv
 	csvsql --query "SELECT DISTINCT LobbyMemberID AS id, LobbyMemberversionid AS version FROM STDIN" < $< | \
 	python -m scrapers.lobbyist.scrape_filings --employer > $@
 
-$(DATA_DIR)/intermediate/lobbyist_employer.csv : $(DATA_DIR)/raw/lobbyist_employer.csv
+$(LOBBYIST_EMPLOYER_DATA_DIR)/intermediate/lobbyist_employer.csv : $(LOBBYIST_EMPLOYER_DATA_DIR)/raw/lobbyist_employer.csv
 	csvsql --query "SELECT DISTINCT \
 		LobbyMemberID,  \
 		Name \
@@ -40,5 +40,5 @@ $(DATA_DIR)/intermediate/lobbyist_employer.csv : $(DATA_DIR)/raw/lobbyist_employ
 	JOIN STDIN \
 	USING (LobbyMemberID, LobbyMemberversionid)" < $< > $@
 
-$(DATA_DIR)/raw/lobbyist_employer.csv : lobbyist_employer_data_dirs
+$(LOBBYIST_EMPLOYER_DATA_DIR)/raw/lobbyist_employer.csv : lobbyist_employer_LOBBYIST_EMPLOYER_DATA_DIRs
 	python -m scrapers.lobbyist.scrape_employers > $@
