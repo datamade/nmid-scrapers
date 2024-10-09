@@ -24,7 +24,6 @@ lobbyist_employer_filings : $(DATA_DIR)/intermediate/lobbyist_employer_filings.c
 
 $(DATA_DIR)/intermediate/lobbyist_employer_filings.csv : $(DATA_DIR)/raw/lobbyist_employer.csv
 	csvsql --query "SELECT DISTINCT LobbyMemberID AS id, LobbyMemberversionid AS version FROM STDIN" < $< | \
-	head -n 25 | \
 	python -m scrapers.lobbyist.scrape_filings --employer > $@
 
 $(DATA_DIR)/intermediate/lobbyist_employer.csv : $(DATA_DIR)/raw/lobbyist_employer.csv

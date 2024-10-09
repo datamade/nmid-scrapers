@@ -69,7 +69,6 @@ $(DATA_DIR)/intermediate/lobbyist.csv : $(DATA_DIR)/raw/lobbyist.csv
 
 $(DATA_DIR)/intermediate/filings.csv : $(DATA_DIR)/raw/lobbyist.csv
 	csvsql --query "SELECT DISTINCT MemberID AS id, MemberVersionID AS version FROM STDIN" < $< | \
-	head -n 25 | \
 	python -m scrapers.lobbyist.scrape_filings > $@
 
 $(DATA_DIR)/raw/lobbyist.csv : $(DATA_DIR)/intermediate/client.csv
