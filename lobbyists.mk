@@ -5,7 +5,7 @@ LOBBYIST_DATA_DIR=data/lobbyist
 	$(LOBBYIST_DATA_DIR)/intermediate/lobbyist_contributions.csv \
 	$(LOBBYIST_DATA_DIR)/intermediate/lobbyist_expenditures.csv
 
-$(LOBBYIST_DATA_DIR)/processed/lobbyist.xlsx : $(LOBBYIST_DATA_DIR)/processed/lobbyist_employer.csv      \
+data/processed/lobbyist.xlsx : $(LOBBYIST_DATA_DIR)/processed/lobbyist_employer.csv      \
 								$(LOBBYIST_DATA_DIR)/processed/lobbyist_contributions.csv \
 								$(LOBBYIST_DATA_DIR)/processed/lobbyist_expenditures.csv
 	python scripts/to_excel.py $^ $@
@@ -77,5 +77,5 @@ $(LOBBYIST_DATA_DIR)/raw/lobbyist.csv : $(LOBBYIST_DATA_DIR)/intermediate/client
 $(LOBBYIST_DATA_DIR)/intermediate/client.csv : $(LOBBYIST_DATA_DIR)/raw/client.csv
 	csvsql --query "SELECT ClientID, ClientVersionID, MAX(ClientName) AS ClientName FROM STDIN GROUP BY ClientID" < $< > $@
 
-$(LOBBYIST_DATA_DIR)/raw/client.csv : lobbyist_LOBBYIST_DATA_DIRs
+$(LOBBYIST_DATA_DIR)/raw/client.csv : lobbyist_data_dirs
 	python -m scrapers.lobbyist.scrape_clients > $@

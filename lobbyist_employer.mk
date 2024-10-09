@@ -5,7 +5,7 @@ LOBBYIST_EMPLOYER_DATA_DIR=data/lobbyist_employer
 	$(LOBBYIST_EMPLOYER_DATA_DIR)/intermediate/lobbyist_employer_contributions.csv \
 	$(LOBBYIST_EMPLOYER_DATA_DIR)/intermediate/lobbyist_employer_expenditures.csv
 
-$(LOBBYIST_EMPLOYER_DATA_DIR)/processed/lobbyist_employer.xlsx : $(LOBBYIST_EMPLOYER_DATA_DIR)/intermediate/lobbyist_employer.csv      \
+data/processed/lobbyist_employer.xlsx : $(LOBBYIST_EMPLOYER_DATA_DIR)/intermediate/lobbyist_employer.csv      \
 								$(LOBBYIST_EMPLOYER_DATA_DIR)/processed/lobbyist_employer_contributions.csv \
 								$(LOBBYIST_EMPLOYER_DATA_DIR)/processed/lobbyist_employer_expenditures.csv
 	python scripts/to_excel.py $^ $@
@@ -40,5 +40,5 @@ $(LOBBYIST_EMPLOYER_DATA_DIR)/intermediate/lobbyist_employer.csv : $(LOBBYIST_EM
 	JOIN STDIN \
 	USING (LobbyMemberID, LobbyMemberversionid)" < $< > $@
 
-$(LOBBYIST_EMPLOYER_DATA_DIR)/raw/lobbyist_employer.csv : lobbyist_employer_LOBBYIST_EMPLOYER_DATA_DIRs
+$(LOBBYIST_EMPLOYER_DATA_DIR)/raw/lobbyist_employer.csv : lobbyist_employer_data_dirs
 	python -m scrapers.lobbyist.scrape_employers > $@
