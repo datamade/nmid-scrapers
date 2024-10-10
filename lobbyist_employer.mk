@@ -24,7 +24,8 @@ lobbyist_employer_filings : $(LOBBYIST_EMPLOYER_DATA_DIR)/intermediate/lobbyist_
 
 $(LOBBYIST_EMPLOYER_DATA_DIR)/intermediate/lobbyist_employer_filings.csv : $(LOBBYIST_EMPLOYER_DATA_DIR)/raw/lobbyist_employer.csv
 	csvsql --query "SELECT DISTINCT LobbyMemberID AS id, LobbyMemberversionid AS version FROM STDIN" < $< | \
-	python -m scrapers.lobbyist.scrape_filings --employer > $@
+	python -m scrapers.lobbyist.scrape_filings --employer | \
+	csvsql --query 'select ReportFileName, ReportTypeCode, MAX(MemberID) as MemberID from STDIN group by ReportFileName, ReportTypeCode' > $@
 
 $(LOBBYIST_EMPLOYER_DATA_DIR)/intermediate/lobbyist_employer.csv : $(LOBBYIST_EMPLOYER_DATA_DIR)/raw/lobbyist_employer.csv
 	csvsql --query "SELECT DISTINCT \
