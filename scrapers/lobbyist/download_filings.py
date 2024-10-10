@@ -6,18 +6,13 @@ import sys
 from tqdm import tqdm
 
 
-def get_file_name(report_type_code, member_id, report_file_name):
-    os.makedirs(
-        os.path.join("data", "pdfs", report_type_code, member_id), exist_ok=True
-    )
+_, subdir = sys.argv
 
-    return os.path.join(
-        "data",
-        "pdfs",
-        report_type_code,
-        member_id,
-        report_file_name,
-    )
+
+def get_file_name(report_type_code, member_id, report_file_name):
+    report_path = os.path.join(subdir, "assets", report_type_code, member_id)
+    os.makedirs(report_path, exist_ok=True)
+    return os.path.join(report_path, report_file_name)
 
 
 reader = csv.DictReader(sys.stdin)
@@ -34,7 +29,11 @@ for row in tqdm(reader):
 
     filing_url = f"https://login.cfis.sos.state.nm.us//ReportsOutput//{row['ReportTypeCode']}/{row['ReportFileName']}"
 
-    response = requests.get(filing_url)
+    try:
+        response = requests.get(filing_url, verify=False)
+    except Exception as e:
+        print(f"Could not retrieve {filing_url}: {e}")
+        continue
 
     if response.ok:
         # LAR - Quarterly, LCD - 48-hour, LNA - No expenditures
