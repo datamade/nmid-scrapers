@@ -77,6 +77,7 @@ if __name__ == "__main__":
             itertools.chain(
                 os.walk(os.path.join(subdir, "assets/LAR")),
                 os.walk(os.path.join(subdir, "assets/LCD")),
+                os.walk(os.path.join(subdir, "assets/LNA")),
             )
         ):
             for file in files:
