@@ -19,7 +19,7 @@ $(LOBBYIST_DATA_DIR)/processed/lobbyist_%.csv : $(LOBBYIST_DATA_DIR)/intermediat
 	$(LOBBYIST_DATA_DIR)/raw/filings.csv \
 	$(LOBBYIST_DATA_DIR)/raw/lobbyist.csv
 	csvjoin --left -c Source,ReportFileName $< $(word 2, $^) | \
-	csvjoin --left -c ID - $(word 3, $^) > $@
+	csvjoin --left -c MemberID,ID - $(word 3, $^) > $@
 
 $(LOBBYIST_DATA_DIR)/intermediate/lobbyist_%.csv : lobbyist_filings
 	python scrapers/lobbyist/cli.py extract-transactions -t $* -d $(LOBBYIST_DATA_DIR)/assets > $@
