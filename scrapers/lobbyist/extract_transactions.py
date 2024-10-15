@@ -35,9 +35,7 @@ def extract_transactions(pdf_obj, table_start_signature, table_end_signature):
     return transactions
 
 
-if __name__ == "__main__":
-    _, transaction_type, subdir = sys.argv
-
+def main(transaction_type, asset_directory):
     if transaction_type == "expenditures":
         column_names = [
             "Date",
@@ -75,9 +73,9 @@ if __name__ == "__main__":
 
         for root, _, files in tqdm(
             itertools.chain(
-                os.walk(os.path.join(subdir, "assets/LAR")),
-                os.walk(os.path.join(subdir, "assets/LCD")),
-                os.walk(os.path.join(subdir, "assets/LNA")),
+                os.walk(os.path.join(asset_directory, "LAR")),
+                os.walk(os.path.join(asset_directory, "LCD")),
+                os.walk(os.path.join(asset_directory, "LNA")),
             )
         ):
             for file in files:
@@ -100,3 +98,7 @@ if __name__ == "__main__":
 
     finally:
         null_file.close()
+
+
+if __name__ == "__main__":
+    main("expenditures", "assets")

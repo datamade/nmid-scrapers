@@ -1,3 +1,4 @@
+from collections import deque
 import csv
 import json
 import logging
@@ -59,15 +60,20 @@ class LobbyistEmployerScraper(scrapelib.Scraper):
                 sys.exit()
 
     def scrape(self):
+        seen_employers = deque(maxlen=25)
+
         for result in self._employers():
-            yield {
-                "Name": result["Name"],
-                "LobbyMemberID": result["LobbyMemberID"],
-                "LobbyMemberversionid": result["LobbyMemberversionid"],
-            }
+            if result["LobbyMemberID"] not in seen_employers:
+                yield {
+                    "Name": result["Name"],
+                    "LobbyMemberID": result["LobbyMemberID"],
+                    "LobbyMemberversionid": result["LobbyMemberversionid"],
+                }
+
+                seen_employers.append(result["LobbyMemberID"])
 
 
-def main():
+def main(rpm=180, retries=3, verify=False):
     writer = csv.DictWriter(
         sys.stdout,
         fieldnames=[
@@ -81,7 +87,7 @@ def main():
     writer.writeheader()
 
     scraper = LobbyistEmployerScraper(
-        requests_per_minute=60, retry_attempts=3, verify=False
+        requests_per_minute=rpm, retry_attempts=retries, verify=verify
     )
     for result in scraper.scrape():
         writer.writerow(result)
