@@ -12,6 +12,9 @@ jobs:
   build:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target: [lobbyist.xlsx, lobbyist_employer.xlsx]
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -20,12 +23,11 @@ jobs:
       - name: setup requirementss
         run: pip install -r requirements.txt
       - name: scrape lobbyist data
-        run: make data/processed/lobbyist.xlsx data/processed/lobbyist_employer.xlsx
+        run: make data/processed/${{ matrix.target }}
       - name: upload to s3
         env:
           S3BUCKET: ${{ secrets.S3BUCKET }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: |
-          aws s3 cp data/processed/lobbyist.xlsx $S3BUCKET --acl public-read
-          aws s3 cp data/processed/lobbyist_employer.xlsx $S3BUCKET --acl public-read
+          aws s3 cp data/processed/${{ matrix.target }} $S3BUCKET --acl public-read

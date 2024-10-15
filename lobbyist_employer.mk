@@ -5,14 +5,14 @@ LOBBYIST_EMPLOYER_DATA_DIR=data/lobbyist_employer
 	$(LOBBYIST_EMPLOYER_DATA_DIR)/intermediate/lobbyist_employer_contributions.csv \
 	$(LOBBYIST_EMPLOYER_DATA_DIR)/intermediate/lobbyist_employer_expenditures.csv
 
-data/processed/lobbyist_employer.xlsx : $(LOBBYIST_EMPLOYER_DATA_DIR)/intermediate/lobbyist_employer.csv      \
+data/processed/lobbyist_employer.xlsx : $(LOBBYIST_EMPLOYER_DATA_DIR)/raw/lobbyist_employer.csv      \
 								$(LOBBYIST_EMPLOYER_DATA_DIR)/processed/lobbyist_employer_contributions.csv \
 								$(LOBBYIST_EMPLOYER_DATA_DIR)/processed/lobbyist_employer_expenditures.csv
 	python scripts/to_excel.py $^ $@
 
 $(LOBBYIST_EMPLOYER_DATA_DIR)/processed/lobbyist_employer_%.csv : $(LOBBYIST_EMPLOYER_DATA_DIR)/intermediate/lobbyist_employer_%.csv \
 	$(LOBBYIST_EMPLOYER_DATA_DIR)/intermediate/lobbyist_employer_filings.csv \
-	$(LOBBYIST_EMPLOYER_DATA_DIR)/intermediate/lobbyist_employer.csv
+	$(LOBBYIST_EMPLOYER_DATA_DIR)/raw/lobbyist_employer.csv
 	csvjoin --left -c Source,ReportFileName $< $(word 2, $^) | \
 	csvjoin --left -c MemberID,LobbyMemberID - $(word 3, $^) > $@
 
