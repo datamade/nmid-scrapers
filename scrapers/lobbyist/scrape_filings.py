@@ -133,8 +133,8 @@ def main(rpm=190, retries=3, verify=False, is_employer_scrape=False):
 
     for row in tqdm(reader):
         id, version = (
-            row["MemberID" if is_employer_scrape else "ID"],
-            row["MemberVersionID"],
+            row["LobbyMemberID" if is_employer_scrape else "ID"],
+            row["LobbyMemberversionid" if is_employer_scrape else "MemberVersionID"],
         )
         results = scraper.scrape(id, version)
         if results:
