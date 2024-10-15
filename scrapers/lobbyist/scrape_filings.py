@@ -41,7 +41,7 @@ class LobbyistScraper(ABC, scrapelib.Scraper):
             for record in response.json():
                 # Add the lobbyist ID and version to the filing record
                 record["MemberID"] = id
-                return record
+                yield record
 
 
 class LobbyistEmployerScraper(LobbyistScraper):
@@ -78,11 +78,12 @@ class IndividualLobbyistScraper(LobbyistScraper):
         }
 
 
-@click.command()
-@click.option("--employer", "is_employer_scrape", is_flag=True)
-def main(is_employer_scrape):
-
-    scraper_opts = {"requests_per_minute": 60, "retry_attempts": 3, "verify": False}
+def main(rpm=190, retries=3, verify=False, is_employer_scrape=False):
+    scraper_opts = {
+        "requests_per_minute": rpm,
+        "retry_attempts": retries,
+        "verify": verify,
+    }
 
     if is_employer_scrape:
         scraper = LobbyistEmployerScraper(**scraper_opts)
@@ -131,11 +132,13 @@ def main(is_employer_scrape):
     writer.writeheader()
 
     for row in tqdm(reader):
-        logger.debug(row)
-        id, version = row["id"], str(int(float(row["version"])))
-        result = scraper.scrape(id, version)
-        if result:
-            writer.writerow(result)
+        id, version = (
+            row["LobbyMemberID" if is_employer_scrape else "ID"],
+            row["LobbyMemberversionid" if is_employer_scrape else "MemberVersionID"],
+        )
+        results = scraper.scrape(id, version)
+        if results:
+            writer.writerows(results)
 
 
 if __name__ == "__main__":
