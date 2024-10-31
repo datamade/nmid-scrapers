@@ -1,38 +1,51 @@
-# This is a basic workflow to help you get started with Actions
+name: Scrape campaign finance data
 
-name: Scrape data
-
-
-# Controls when the action will run. 
 on:
   schedule:
-    # * is a special character in YAML so you have to quote this string
     - cron:  '15 2 * * *'    
 
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
-  build:
-    # The type of runner that the job will run on
+  scrape:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target: [
+          disclosures.xlsx,
+          candidate_committees.csv,
+          candidate_committee_filings.csv,
+          pac_committees.csv,
+          pac_committee_filings.csv,
+          independent_expenditures.xlsx, 
+          lobbyist.xlsx, 
+          lobbyist_employer.xlsx
+        ]
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
-      - name: setup requirementss
+      - uses: actions/checkout@v4
+
+      - name: Setup requirementss
         run: pip install -r requirements.txt
-      - name: scrape data
-        run: make all
-      - name: upload to s3
+
+      - name: Make ${{ matrix.target }}
+        run: make data/processed/${{ matrix.target }}
+
+      - name: Upload ${{ matrix.target }} to S3
         env:
           S3BUCKET: ${{ secrets.S3BUCKET }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        run: make upload-to-s3
+        run: |
+          aws s3 cp data/processed/${{ matrix.target }} $S3BUCKET --acl public-read
+
+
+  import:
+    if: '!cancelled()'
+    needs: scrape
+    runs-on: ubuntu-latest
+
+    steps:
       - name: Trigger Openness Project ETL
         uses: peter-evans/repository-dispatch@v3
         with:
