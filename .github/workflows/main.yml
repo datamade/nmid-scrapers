@@ -12,14 +12,12 @@ jobs:
     strategy:
       matrix:
         target: [
-          disclosures.xlsx,
-          candidate_committees.csv,
-          candidate_committee_filings.csv,
-          pac_committees.csv,
-          pac_committee_filings.csv,
-          independent_expenditures.xlsx, 
-          lobbyist.xlsx, 
-          lobbyist_employer.xlsx
+          data/processed/disclosures.xlsx,
+          'data/processed/candidate_committees.csv data/processed/candidate_committee_filings.csv',
+          'data/processed/pac_committees.csv data/processed/pac_committee_filings.csv',
+          data/processed/independent_expenditures.xlsx, 
+          data/processed/lobbyist.xlsx, 
+          data/processed/lobbyist_employer.xlsx
         ]
 
     steps:
@@ -29,7 +27,7 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Make ${{ matrix.target }}
-        run: make data/processed/${{ matrix.target }}
+        run: make ${{ matrix.target }}
 
       - name: Upload ${{ matrix.target }} to S3
         env:
@@ -37,7 +35,7 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: |
-          aws s3 cp data/processed/${{ matrix.target }} $S3BUCKET --acl public-read
+          aws s3 cp ${{ matrix.target }} $S3BUCKET --acl public-read
 
 
   import:
