@@ -39,7 +39,6 @@ jobs:
 
 
   import:
-    if: '!cancelled()'
     needs: scrape
     runs-on: ubuntu-latest
 
