@@ -25,7 +25,6 @@ class SubstringDict:
 
 
 def update_not_null(d1, d2):
-
     for k, v in d2.items():
         if not d1.get(k):
             d1[k] = v
@@ -109,15 +108,31 @@ class SearchScraper(scrapelib.Scraper, abc.ABC):
 
     def _parse_filing_pdf(self, version):
         if version["ReportFileName"]:
+            report_url = f"https://login.cfis.sos.state.nm.us//ReportsOutput//{version['ReportFileName']}"
             try:
-                pdf = self.get(
-                    f"https://login.cfis.sos.state.nm.us//ReportsOutput//{version['ReportFileName']}"
-                )
+                pdf = self.get(report_url)
+
             except scrapelib.HTTPError:
                 return {}
+
             else:
                 version_pdf = pdfplumber.open(io.BytesIO(pdf.content))
+
+                # Sometimes reports are buggy on the SOS side. They contain no info. Skip them.
+                # Example: https://login.cfis.sos.state.nm.us//ReportsOutput//106/7a31709c-c22e-4d7b-a4e6-e26fec2228ea.pdf
+                if any(
+                    [
+                        "Subreport could not be shown" in page.extract_text()
+                        for page in version_pdf.pages
+                    ]
+                ):
+                    logger.warning(
+                        f"Incomplete report document at {report_url}. Skipping..."
+                    )
+                    return {}
+
                 version_table = SubstringDict(parse_pdf(version_pdf))
+
                 return {
                     "opening_balance": version_table[
                         "OPENING BALANCE for reporting period"
@@ -269,7 +284,6 @@ if __name__ == "__main__":
             committee_writer.writeheader()
 
         if filing_writer is None and filings:
-
             filing_writer = csv.DictWriter(
                 filing_file,
                 fieldnames=["StateID", "CommitteeName"] + list(filings[0].keys()),
