@@ -35,9 +35,8 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: |
-          aws s3 cp ${{ matrix.target }} $S3BUCKET --acl public-read
-
-
+          for file in ${{ matrix.target }}; do aws s3 cp $file $S3BUCKET --acl public-read; done
+          
   import:
     needs: scrape
     runs-on: ubuntu-latest
