@@ -118,20 +118,24 @@ class SearchScraper(scrapelib.Scraper, abc.ABC):
             else:
                 version_pdf = pdfplumber.open(io.BytesIO(pdf.content))
 
-                # Sometimes reports are buggy on the SOS side. They contain no info. Skip them.
-                # Example: https://login.cfis.sos.state.nm.us//ReportsOutput//106/7a31709c-c22e-4d7b-a4e6-e26fec2228ea.pdf
-                if any(
-                    [
-                        "Subreport could not be shown" in page.extract_text()
-                        for page in version_pdf.pages
-                    ]
-                ):
-                    logger.warning(
-                        f"Incomplete report document at {report_url}. Skipping..."
+                try:
+                    version_content = parse_pdf(version_pdf)
+                except Exception as e:
+                    # Skip reports that can't be parsed
+                    logger.error(
+                        f"Could not parse report document at {report_url} due to the following exception:\n{str(e)}"
                     )
                     return {}
 
-                version_table = SubstringDict(parse_pdf(version_pdf))
+                # Skip reports containing none of the relevant information, e.g.,
+                # https://login.cfis.sos.state.nm.us//ReportsOutput//106/7a31709c-c22e-4d7b-a4e6-e26fec2228ea.pdf
+                if version_content is None:
+                    logger.warning(
+                        f"Skipping incomplete report document at {report_url}"
+                    )
+                    return {}
+
+                version_table = SubstringDict(version_content)
 
                 return {
                     "opening_balance": version_table[

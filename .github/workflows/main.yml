@@ -27,7 +27,7 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Make ${{ matrix.target }}
-        run: make ${{ matrix.target }}
+        run: PYTHONWARNINGS="ignore:Unverified HTTPS request" make -e ${{ matrix.target }}
 
       - name: Upload ${{ matrix.target }} to S3
         env:
