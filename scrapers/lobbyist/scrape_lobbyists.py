@@ -45,6 +45,7 @@ def main(rpm=180, retries=3, verify=False):
         "AgentType": "",
         "PageNo": 1,
         "PageSize": 1000,
+        "SortedBy": "LobbyistName",
         "SortOrder": "ASC",
     }
 

@@ -22,7 +22,7 @@ class LobbyistEmployerScraper(scrapelib.Scraper):
             "pageNumber": 1,
             "pageSize": 1000,
             "sortDir": "ASC",
-            "sortedBy": "",
+            "sortedBy": "Name",
         }
 
         page_number = 1
