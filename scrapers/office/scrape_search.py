@@ -116,12 +116,19 @@ class SearchScraper(scrapelib.Scraper, abc.ABC):
                 return {}
 
             else:
-                version_pdf = pdfplumber.open(io.BytesIO(pdf.content))
+                # Skip reports that can't be opened
+                try:
+                    version_pdf = pdfplumber.open(io.BytesIO(pdf.content))
+                except Exception as e:
+                    logger.error(
+                        f"Could not open report document at {report_url} due to the following exception:\n{str(e)}"
+                    )
+                    return {}
 
+                # Skip reports that can't be parsed
                 try:
                     version_content = parse_pdf(version_pdf)
                 except Exception as e:
-                    # Skip reports that can't be parsed
                     logger.error(
                         f"Could not parse report document at {report_url} due to the following exception:\n{str(e)}"
                     )
