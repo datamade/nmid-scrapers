@@ -44,14 +44,14 @@ def main(rpm=180, retries=3, verify=False):
         "ClientBusinessorEntityType": None,
         "AgentType": "",
         "PageNo": 1,
-        "PageSize": 1000,
+        "PageSize": 25,
         "SortedBy": "LobbyistName",
         "SortOrder": "ASC",
     }
 
     page_number = 1
-    page_size = 1000
-    result_count = 1000
+    page_size = 25
+    result_count = 25
     seen_lobbyists = deque(maxlen=25)
 
     while result_count == page_size:
