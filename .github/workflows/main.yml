@@ -48,3 +48,11 @@ jobs:
           token: ${{ secrets.PAT }}
           repository: datamade/openness-project-nmid
           event-type: nightly-scrape-done
+
+  workflow-keepalive:
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - uses: liskin/gh-workflow-keepalive@v1
