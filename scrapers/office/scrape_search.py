@@ -95,6 +95,27 @@ class SearchScraper(scrapelib.Scraper, abc.ABC):
     def _filings(self, search_result):
         ...
 
+    def _get_filings(self, payload):
+        payload = payload.copy()
+        page_number = 1
+        page_size = payload["pageSize"]
+        filings = []
+        result_count = page_size
+
+        while result_count == page_size:
+            payload["pageNumber"] = page_number
+
+            page = self.get(
+                "https://login.cfis.sos.state.nm.us/api///Filing/GetFilings",
+                params=payload,
+            ).json()
+
+            filings.extend(page)
+            result_count = len(page)
+            page_number += 1
+
+        return filings
+
     def _versions(self, filing):
         versions = [filing]
         if filing["ReportVersionID"] > 1:
@@ -201,13 +222,10 @@ class CandidateScraper(SearchScraper):
             "FilerNameLink": "exploreDetails",
             "committeeID": search_result[self.id_key],
             "pageNumber": 1,
-            "pageSize": 100,
+            "pageSize": 1000,
         }
 
-        filings = self.get(
-            "https://login.cfis.sos.state.nm.us/api///Filing/GetFilings",
-            params=payload,
-        ).json()
+        filings = self._get_filings(payload)
 
         data = []
 
@@ -238,13 +256,10 @@ class CommitteeScraper(SearchScraper):
             "FilerNameLink": "exploreCommitteeDetails",
             "committeeID": search_result[self.id_key],
             "pageNumber": 1,
-            "pageSize": 100,
+            "pageSize": 1000,
         }
 
-        filings = self.get(
-            "https://login.cfis.sos.state.nm.us/api///Filing/GetFilings",
-            params=payload,
-        ).json()
+        filings = self._get_filings(payload)
 
         data = []
 
